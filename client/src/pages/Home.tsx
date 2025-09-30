@@ -23,7 +23,7 @@ export default function Home() {
             <div className="space-y-4 text-lg leading-relaxed text-white/80">
               <p>
                 I'm a Cognitive Science student at{' '}
-                <HoverImage imageSrc="https://images.unsplash.com/photo-1568515387631-8b650bbcdb90?w=300&h=200&fit=crop">
+                <HoverImage imageSrc="/attached_assets/image_1759252831536.png">
                   <span className="border-b border-white/30 hover:border-white/70 transition-colors">UCSD</span>
                 </HoverImage>
                 {' '}specializing in Machine Learning and Neural Computation.
@@ -53,12 +53,15 @@ export default function Home() {
           {/* Education & Leadership */}
           <section className="space-y-4 text-lg leading-relaxed text-white/80">
             <p>
-              I'm pursuing my B.S. in Cognitive Science: ML & Neural Computation at{' '}
-              <span className="text-white">University of California, San Diego</span> (expected June 2027).
-            </p>
-            
-            <p>
-              I serve as VP of Education at Muslim Tech Collaborative and Vice President of my fraternity.
+              I serve as VP of Education at{' '}
+              <HoverImage imageSrc="/attached_assets/image_1759252950482.png">
+                <span className="border-b border-white/30 hover:border-white/70 transition-colors">Muslim Tech Collaborative</span>
+              </HoverImage>
+              {' '}and Vice President of{' '}
+              <HoverImage imageSrc="https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=300&h=200&fit=crop">
+                <span className="border-b border-white/30 hover:border-white/70 transition-colors">Alpha Lambda Mu</span>
+              </HoverImage>
+              .
             </p>
           </section>
 
@@ -84,42 +87,53 @@ export default function Home() {
               </p>
               
               <p>
-                <HoverImage imageSrc="https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=300&h=200&fit=crop">
-                  <span className="border-b border-white/30 hover:border-white/70 transition-colors">Theology LLM Evaluation</span>
+                <HoverImage imageSrc="/attached_assets/image_1759252950482.png">
+                  <a 
+                    href="https://mcc-genai-guild.vercel.app/" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="border-b border-white/30 hover:border-white/70 transition-colors"
+                  >
+                    Theology LLM Evaluation
+                  </a>
                 </HoverImage>
                 {' '}— Built a multiagent benchmarking system for Islamic ethics knowledge. Launched the first Islamic AI leaderboard with 1000+ prompts.
               </p>
               
               <p>
-                <a 
-                  href="https://github.com/zahiraIi/TritionGuard" 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="border-b border-white/30 hover:border-white/70 transition-colors"
-                  data-testid="link-tritonguard"
-                >
-                  TritonGuard
-                </a>
+                <HoverImage imageSrc="/attached_assets/image_1759252998618.png">
+                  <a 
+                    href="https://github.com/zahiraIi/TritionGuard" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="border-b border-white/30 hover:border-white/70 transition-colors"
+                    data-testid="link-tritonguard"
+                  >
+                    TritonGuard
+                  </a>
+                </HoverImage>
                 {' '}— Community safety app for students at risk, enabling anonymous reporting. Scaled to UC campuses statewide with UCSA.
               </p>
               
               <p>
-                <HoverImage imageSrc="https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=300&h=200&fit=crop">
+                <HoverImage imageSrc="/attached_assets/image_1759253038104.png">
                   <span className="border-b border-white/30 hover:border-white/70 transition-colors">ApplyPal</span>
                 </HoverImage>
                 {' '}— AI-powered email generator that helps students tailor outreach using resume parsing and web scraping with automatic follow-ups.
               </p>
               
               <p>
-                <a 
-                  href="https://sjsuconcretecanoes.org" 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="border-b border-white/30 hover:border-white/70 transition-colors"
-                  data-testid="link-asce"
-                >
-                  SJSU Concrete Canoes
-                </a>
+                <HoverImage imageSrc="/attached_assets/image_1759253083708.png">
+                  <a 
+                    href="https://sjsuconcretecanoes.org" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="border-b border-white/30 hover:border-white/70 transition-colors"
+                    data-testid="link-asce"
+                  >
+                    SJSU Concrete Canoes
+                  </a>
+                </HoverImage>
                 {' '}— Responsive website with Google Sheets API integration for real-time donation tracking and automated membership processing.
               </p>
             </div>
