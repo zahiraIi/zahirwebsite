@@ -76,8 +76,8 @@
   --chart-4: 25 90% 50%;
   --chart-5: 340 75% 50%;
 
-  --font-sans: Inter, system-ui, sans-serif;
-  --font-serif: Georgia, serif;
+  --font-sans: canela, canela-deck, serif;
+  --font-serif: canela, canela-deck, serif;
   --font-mono: JetBrains Mono, monospace;
   --radius: .5rem; /* 8px */
   --shadow-2xs: 0px 2px 0px 0px hsl(220 8% 20% / 0.00);

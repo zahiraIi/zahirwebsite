@@ -1,10 +1,14 @@
 import express, { type Request, Response, NextFunction } from "express";
+import path from "path";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+
+// Serve attached assets
+app.use('/attached_assets', express.static(path.resolve(import.meta.dirname, '..', 'attached_assets')));
 
 app.use((req, res, next) => {
   const start = Date.now();
@@ -57,15 +61,22 @@ app.use((req, res, next) => {
   }
 
   // ALWAYS serve the app on the port specified in the environment variable PORT
-  // Other ports are firewalled. Default to 5000 if not specified.
-  // this serves both the API and the client.
-  // It is the only port that is not firewalled.
-  const port = parseInt(process.env.PORT || '5000', 10);
-  server.listen({
-    port,
-    host: "0.0.0.0",
-    reusePort: true,
-  }, () => {
-    log(`serving on port ${port}`);
-  });
+  // In development, if PORT is not set, bind to a free port automatically (0).
+  const preferred =
+    process.env.PORT
+      ? parseInt(process.env.PORT, 10)
+      : (app.get("env") === "development" ? 0 : 5000);
+
+  server.listen(
+    {
+      port: preferred,
+      host: "0.0.0.0",
+      reusePort: true,
+    },
+    () => {
+      const addr = server.address();
+      const actualPort = typeof addr === "object" && addr ? addr.port : preferred;
+      log(`serving on port ${actualPort}`);
+    },
+  );
 })();

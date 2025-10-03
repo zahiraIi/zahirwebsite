@@ -83,8 +83,8 @@ export default {
         },
       },
       fontFamily: {
-        sans: ["Inter", "var(--font-sans)"],
-        serif: ["var(--font-serif)"],
+        sans: ["canela", "canela-deck", "serif"],
+        serif: ["canela", "canela-deck", "serif"],
         mono: ["JetBrains Mono", "var(--font-mono)"],
       },
       keyframes: {
