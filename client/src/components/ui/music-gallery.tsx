@@ -49,10 +49,23 @@ const ImageCard = ({ image, index }: { image: { id: number | string; title: stri
 export function MusicGallery({ images }: MusicGalleryProps) {
 	const [selectedImage, setSelectedImage] = React.useState<{ url: string; title: string } | null>(null);
 
+	// Lock scroll when modal is open
+	React.useEffect(() => {
+		if (selectedImage) {
+			document.body.style.overflow = 'hidden';
+		} else {
+			document.body.style.overflow = 'unset';
+		}
+		
+		return () => {
+			document.body.style.overflow = 'unset';
+		};
+	}, [selectedImage]);
+
 	return (
 		<>
 			<div className="relative flex w-full flex-col items-center justify-center py-12">
-				<div className="mx-auto grid w-full max-w-[1400px] grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-10 px-8 md:px-12 auto-rows-fr">
+				<div className="mx-auto grid w-full max-w-[1400px] grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-6 md:gap-8 px-8 md:px-12 auto-rows-fr">
 					{images.map((image, index) => (
 						<div key={image.id} onClick={() => setSelectedImage({ url: image.url, title: image.title })}>
 							<ImageCard image={image} index={index} />
@@ -71,19 +84,20 @@ export function MusicGallery({ images }: MusicGalleryProps) {
 						transition={{ duration: 0.3 }}
 						onClick={() => setSelectedImage(null)}
 						className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/90 p-4 cursor-pointer"
+						style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0 }}
 					>
-						<motion.div
-							initial={{ scale: 0.8, opacity: 0 }}
-							animate={{ scale: 1, opacity: 1 }}
-							exit={{ scale: 0.8, opacity: 0 }}
-							transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-							onClick={(e) => e.stopPropagation()}
-							className="relative max-w-4xl max-h-[90vh] w-full h-full flex items-center justify-center"
-						>
+					<motion.div
+						initial={{ scale: 0.8, opacity: 0 }}
+						animate={{ scale: 1, opacity: 1 }}
+						exit={{ scale: 0.8, opacity: 0 }}
+						transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+						onClick={(e) => e.stopPropagation()}
+						className="relative max-w-4xl max-h-[90vh] w-full flex items-center justify-center"
+					>
 							<img
 								src={selectedImage.url}
 								alt={selectedImage.title}
-								className="max-w-full max-h-full w-auto h-auto object-contain rounded-lg"
+								className="w-[800px] h-[800px] object-cover rounded-lg"
 							/>
 							<button
 								onClick={() => setSelectedImage(null)}
