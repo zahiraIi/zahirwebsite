@@ -9,8 +9,8 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 export default defineConfig({
   plugins: [react()],
   root: path.resolve(__dirname, "client"),
-  // Treat repo-level attached_assets as Vite public folder
-  publicDir: path.resolve(__dirname, "attached_assets"),
+  // Use standard Vite public directory under client/public
+  publicDir: path.resolve(__dirname, "client", "public"),
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "client", "src"),
