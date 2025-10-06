@@ -444,7 +444,7 @@ export default function Home() {
           target="viewport"
           position="bottom"
           height="12rem"
-          strength={4}
+          strength={3}
           divCount={8}
           curve="bezier"
           exponential={true}
