@@ -19,8 +19,8 @@ export default function Home() {
       id: 1, 
       title: 'Gallery 1', 
       desc: '', 
-      url: '/attached_assets/optimized/travels/preview/gallery1.webp',
-      fullSizeUrl: '/attached_assets/optimized/travels/fullsize/gallery1.webp',
+      url: '/attached_assets/gallery1.webp',
+      fullSizeUrl: '/attached_assets/gallery1.webp',
       span: '',
       location: { 
         lat: 37.86789124, 
@@ -33,8 +33,8 @@ export default function Home() {
       id: 2, 
       title: 'Gallery 2', 
       desc: '', 
-      url: '/attached_assets/optimized/travels/preview/gallery2.webp',
-      fullSizeUrl: '/attached_assets/optimized/travels/fullsize/gallery2.webp',
+      url: '/attached_assets/gallery2.webp',
+      fullSizeUrl: '/attached_assets/gallery2.webp',
       span: '',
       location: { 
         lat: 40.41841624, 
@@ -47,8 +47,8 @@ export default function Home() {
       id: 3, 
       title: 'Gallery 3', 
       desc: '', 
-      url: '/attached_assets/optimized/travels/preview/gallery3.webp',
-      fullSizeUrl: '/attached_assets/optimized/travels/fullsize/gallery3.webp',
+      url: '/attached_assets/gallery3.webp',
+      fullSizeUrl: '/attached_assets/gallery3.webp',
       span: '',
       location: { 
         lat: 40.41614085, 
@@ -61,8 +61,8 @@ export default function Home() {
       id: 4, 
       title: 'Gallery 4', 
       desc: '', 
-      url: '/attached_assets/optimized/travels/preview/gallery4.webp',
-      fullSizeUrl: '/attached_assets/optimized/travels/fullsize/gallery4.webp',
+      url: '/attached_assets/gallery4.webp',
+      fullSizeUrl: '/attached_assets/gallery4.webp',
       span: '',
       location: { 
         lat: 48.85978968, 
@@ -75,8 +75,8 @@ export default function Home() {
       id: 5, 
       title: 'Gallery 5', 
       desc: '', 
-      url: '/attached_assets/optimized/travels/preview/gallery5.webp',
-      fullSizeUrl: '/attached_assets/optimized/travels/fullsize/gallery5.webp',
+      url: '/attached_assets/gallery5.webp',
+      fullSizeUrl: '/attached_assets/gallery5.webp',
       span: '',
       location: { 
         lat: 51.50191138, 
@@ -89,8 +89,8 @@ export default function Home() {
       id: 6, 
       title: 'Gallery 6', 
       desc: '', 
-      url: '/attached_assets/optimized/travels/preview/gallery6.webp',
-      fullSizeUrl: '/attached_assets/optimized/travels/fullsize/gallery6.webp',
+      url: '/attached_assets/gallery6.webp',
+      fullSizeUrl: '/attached_assets/gallery6.webp',
       span: '',
       location: { 
         lat: 51.50126371, 
@@ -157,72 +157,72 @@ export default function Home() {
       id: 1, 
       title: 'Friend 1', 
       desc: '', 
-      url: '/attached_assets/optimized/friends/preview/friend1.webp',
-      fullSizeUrl: '/attached_assets/optimized/friends/fullsize/friend1.webp',
+      url: '/attached_assets/friend1.webp',
+      fullSizeUrl: '/attached_assets/friend1.webp',
       span: '' 
     },
     { 
       id: 2, 
       title: 'Friend 2', 
       desc: '', 
-      url: '/attached_assets/optimized/friends/preview/friend2.webp',
-      fullSizeUrl: '/attached_assets/optimized/friends/fullsize/friend2.webp',
+      url: '/attached_assets/friend2.webp',
+      fullSizeUrl: '/attached_assets/friend2.webp',
       span: '' 
     },
     { 
       id: 3, 
       title: 'Friend 3', 
       desc: '', 
-      url: '/attached_assets/optimized/friends/preview/friend3.webp',
-      fullSizeUrl: '/attached_assets/optimized/friends/fullsize/friend3.webp',
+      url: '/attached_assets/friend3.webp',
+      fullSizeUrl: '/attached_assets/friend3.webp',
       span: '' 
     },
     { 
       id: 4, 
       title: 'Friend 4', 
       desc: '', 
-      url: '/attached_assets/optimized/friends/preview/friend4.webp',
-      fullSizeUrl: '/attached_assets/optimized/friends/fullsize/friend4.webp',
+      url: '/attached_assets/friend4.webp',
+      fullSizeUrl: '/attached_assets/friend4.webp',
       span: '' 
     },
     { 
       id: 5, 
       title: 'Friend 5', 
       desc: '', 
-      url: '/attached_assets/optimized/friends/preview/friend5.webp',
-      fullSizeUrl: '/attached_assets/optimized/friends/fullsize/friend5.webp',
+      url: '/attached_assets/friend5.webp',
+      fullSizeUrl: '/attached_assets/friend5.webp',
       span: '' 
     },
     { 
       id: 6, 
       title: 'Friend 6', 
       desc: '', 
-      url: '/attached_assets/optimized/friends/preview/friend6.webp',
-      fullSizeUrl: '/attached_assets/optimized/friends/fullsize/friend6.webp',
+      url: '/attached_assets/friend6.webp',
+      fullSizeUrl: '/attached_assets/friend6.webp',
       span: '' 
     },
     { 
       id: 7, 
       title: 'Friend 7', 
       desc: '', 
-      url: '/attached_assets/optimized/friends/preview/friend7.webp',
-      fullSizeUrl: '/attached_assets/optimized/friends/fullsize/friend7.webp',
+      url: '/attached_assets/friend7.webp',
+      fullSizeUrl: '/attached_assets/friend7.webp',
       span: '' 
     },
     { 
       id: 8, 
       title: 'Friend 8', 
       desc: '', 
-      url: '/attached_assets/optimized/friends/preview/friend8.webp',
-      fullSizeUrl: '/attached_assets/optimized/friends/fullsize/friend8.webp',
+      url: '/attached_assets/friend8.webp',
+      fullSizeUrl: '/attached_assets/friend8.webp',
       span: '' 
     },
     { 
       id: 9, 
       title: 'Friend 9', 
       desc: '', 
-      url: '/attached_assets/optimized/friends/preview/friend9.webp',
-      fullSizeUrl: '/attached_assets/optimized/friends/fullsize/friend9.webp',
+      url: '/attached_assets/friend9.webp',
+      fullSizeUrl: '/attached_assets/friend9.webp',
       span: '' 
     },
   ], []);
