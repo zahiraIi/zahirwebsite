@@ -1,0 +1,59 @@
+import { motion } from "framer-motion";
+import { MusicGallery } from "./ui/music-gallery";
+
+interface Location {
+  lat: number;
+  lng: number;
+  name: string;
+}
+
+interface Image {
+  id: number;
+  title: string;
+  desc: string;
+  url: string;
+  span: string;
+  location?: Location;
+}
+
+interface TravelingSectionProps {
+  images: Image[];
+}
+
+export default function TravelingSection({ images }: TravelingSectionProps) {
+  return (
+    <section className="relative flex items-center justify-center py-16 md:py-20 overflow-hidden">
+      <div className="w-full px-8 pb-32 md:pb-40">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95, y: 30 }}
+          whileInView={{ opacity: 1, scale: 1, y: 0 }}
+          viewport={{ once: true, margin: "-100px" }}
+          transition={{ 
+            duration: 0.5, 
+            ease: [0.22, 1, 0.36, 1],
+            scale: { duration: 0.6 }
+          }}
+        >
+          <motion.h2 
+            className="text-5xl md:text-7xl font-bold mb-16 text-white text-center"
+            initial={{ opacity: 0, y: -20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.4, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
+          >
+            Travel
+          </motion.h2>
+          
+          <div style={{ contentVisibility: 'auto', containIntrinsicSize: 'auto 1200px' }}>
+            <MusicGallery 
+              images={images} 
+              sizeVariant="normal" 
+              enableGoogleEarth={true} 
+            />
+          </div>
+        </motion.div>
+      </div>
+    </section>
+  );
+}
+

@@ -8,15 +8,17 @@ interface LiquidChromeProps extends React.HTMLAttributes<HTMLDivElement> {
   frequencyX?: number;
   frequencyY?: number;
   interactive?: boolean;
+  blurScale?: number; // controls background blur amount in shader (higher = more blur)
 }
 
 export const LiquidChrome: React.FC<LiquidChromeProps> = ({
-  baseColor = [0.1, 0.1, 0.1],
-  speed = 0.2,
-  amplitude = 0.5,
+  baseColor = [0.0, 0.1, 0.6],
+  speed = 1,
+  amplitude = 0.6,
   frequencyX = 3,
   frequencyY = 2,
   interactive = true,
+  blurScale = 0,
   ...props
 }) => {
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -47,6 +49,7 @@ export const LiquidChrome: React.FC<LiquidChromeProps> = ({
       uniform float uAmplitude;
       uniform float uFrequencyX;
       uniform float uFrequencyY;
+      uniform float uBlurScale;
       uniform vec2 uMouse;
       varying vec2 vUv;
 
@@ -74,7 +77,7 @@ export const LiquidChrome: React.FC<LiquidChromeProps> = ({
           int samples = 0;
           for (int i = -1; i <= 1; i++){
               for (int j = -1; j <= 1; j++){
-                  vec2 offset = vec2(float(i), float(j)) * (1.0 / min(uResolution.x, uResolution.y));
+                  vec2 offset = vec2(float(i), float(j)) * uBlurScale * (1.0 / min(uResolution.x, uResolution.y));
                   col += renderImage(vUv + offset);
                   samples++;
               }
@@ -96,32 +99,33 @@ export const LiquidChrome: React.FC<LiquidChromeProps> = ({
         uAmplitude: { value: amplitude },
         uFrequencyX: { value: frequencyX },
         uFrequencyY: { value: frequencyY },
+        uBlurScale: { value: blurScale },
         uMouse: { value: new Float32Array([0, 0]) }
       }
     });
     const mesh = new Mesh(gl, { geometry, program });
 
-    const resize = () => {
+    function resize() {
       const scale = 1;
       renderer.setSize(container.offsetWidth * scale, container.offsetHeight * scale);
       const resUniform = program.uniforms.uResolution.value as Float32Array;
       resUniform[0] = gl.canvas.width;
       resUniform[1] = gl.canvas.height;
       resUniform[2] = gl.canvas.width / gl.canvas.height;
-    };
+    }
     window.addEventListener('resize', resize);
     resize();
 
-    const handleMouseMove = (event: MouseEvent) => {
+    function handleMouseMove(event: MouseEvent) {
       const rect = container.getBoundingClientRect();
       const x = (event.clientX - rect.left) / rect.width;
       const y = 1 - (event.clientY - rect.top) / rect.height;
       const mouseUniform = program.uniforms.uMouse.value as Float32Array;
       mouseUniform[0] = x;
       mouseUniform[1] = y;
-    };
+    }
 
-    const handleTouchMove = (event: TouchEvent) => {
+    function handleTouchMove(event: TouchEvent) {
       if (event.touches.length > 0) {
         const touch = event.touches[0];
         const rect = container.getBoundingClientRect();
@@ -131,7 +135,7 @@ export const LiquidChrome: React.FC<LiquidChromeProps> = ({
         mouseUniform[0] = x;
         mouseUniform[1] = y;
       }
-    };
+    }
 
     if (interactive) {
       container.addEventListener('mousemove', handleMouseMove);
@@ -139,11 +143,11 @@ export const LiquidChrome: React.FC<LiquidChromeProps> = ({
     }
 
     let animationId: number;
-    const update = (t: number) => {
+    function update(t: number) {
       animationId = requestAnimationFrame(update);
       program.uniforms.uTime.value = t * 0.001 * speed;
       renderer.render({ scene: mesh });
-    };
+    }
     animationId = requestAnimationFrame(update);
 
     container.appendChild(gl.canvas);
@@ -160,10 +164,9 @@ export const LiquidChrome: React.FC<LiquidChromeProps> = ({
       }
       gl.getExtension('WEBGL_lose_context')?.loseContext();
     };
-  }, [baseColor, speed, amplitude, frequencyX, frequencyY, interactive]);
+  }, [baseColor, speed, amplitude, frequencyX, frequencyY, interactive, blurScale]);
 
   return <div ref={containerRef} className="w-full h-full" {...props} />;
 };
 
 export default LiquidChrome;
-
