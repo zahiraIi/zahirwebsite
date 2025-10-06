@@ -30,15 +30,6 @@ const projects: Project[] = [
     isEmbeddable: true,
   },
   {
-    title: "TritonGuard",
-    description: "Community safety app for students at risk of deportation at UCSD.",
-    previewImage: "/attached_assets/TritonGuard.webp",
-    logoImage: "/attached_assets/tritonguard_logo.png",
-    projectUrl: "https://trition-guard.vercel.app/",
-    externalUrl: "https://trition-guard.vercel.app/",
-    isEmbeddable: true,
-  },
-  {
     title: "SJSU ASCE",
     description: "Responsive website with Google Sheets API integration for real-time donation tracking and automated membership processing.",
     previewImage: "/attached_assets/ASCE_logo.webp",
