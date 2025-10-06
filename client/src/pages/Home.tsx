@@ -327,7 +327,7 @@ export default function Home() {
                 machine learning & software engineer
               </motion.p>
               <motion.p 
-                className="text-lg md:text-4xl font-light text-white"
+                className="text-xl md:text-4xl font-light text-white mb-2"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8, delay: 0.8, ease: [0.16, 1, 0.3, 1] }}
@@ -337,6 +337,7 @@ export default function Home() {
                   href="https://atmosenseinc.com/"
                   previewImage="/attached_assets/atmosense.png"
                   imageAlt="AtmoSense - Revolutionizing gas sensing technology"
+                  className="text-xl md:text-4xl font-light"
                 >
                   AtmoSense
                 </HoverLinkPreview>

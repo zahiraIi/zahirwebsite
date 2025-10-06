@@ -1,6 +1,7 @@
 "use client" 
 
 import * as React from "react"
+import { cn } from "@/lib/utils"
 import { useRef, useState } from "react";
 import {
   motion,
@@ -14,6 +15,7 @@ interface HoverLinkPreviewProps {
   previewImage: string;
   imageAlt?: string;
   children: React.ReactNode;
+  className?: string;
 }
  
 const HoverLinkPreview: React.FC<HoverLinkPreviewProps> = ({
@@ -21,6 +23,7 @@ const HoverLinkPreview: React.FC<HoverLinkPreviewProps> = ({
   previewImage,
   imageAlt = "Link preview",
   children,
+  className,
 }) => {
   const [showPreview, setShowPreview] = useState(false);
   const linkRef = useRef<HTMLAnchorElement>(null);
@@ -76,7 +79,10 @@ const HoverLinkPreview: React.FC<HoverLinkPreviewProps> = ({
         href={href}
         target="_blank"
         rel="noopener noreferrer"
-        className="relative inline-block cursor-pointer text-white underline decoration-white/30 hover:decoration-white/60 underline-offset-4 text-2xl md:text-3xl font-normal"
+        className={cn(
+          "relative inline-block cursor-pointer text-white underline decoration-white/30 hover:decoration-white/60 underline-offset-4",
+          className
+        )}
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
         onMouseMove={handleMouseMove}

@@ -14,7 +14,7 @@ interface Project {
 const projects: Project[] = [
   {
     title: "UCSD School of Physical Sciences ML Research",
-    description: "Robotic-Swarm Reinforcement Learning Navigation using TD3 with LSTM for decentralized control of underwater spinning-bot swarms.",
+    description: "Robotic-Swarm Reinforcement Learning Navigation using DDPG with LSTM for decentralized control of underwater spinning-bot swarms.",
     previewImage: "/attached_assets/REINFORCEMENTLEARNING.webp",
     logoImage: "/attached_assets/UCSD.webp",
     externalUrl: "https://github.com/zahiraIi/ML-Lab-Summer-2025-UCSD",
