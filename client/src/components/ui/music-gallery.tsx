@@ -252,6 +252,32 @@ export const MusicGallery = React.memo(function MusicGallery({
 		}
 	};
 
+	const handlePrevImageTouch = () => {
+		if (selectedImage) {
+			const newIndex = (selectedImage.index - 1 + images.length) % images.length;
+			const newImage = images[newIndex];
+			setSelectedImage({
+				url: newImage.fullSizeUrl || newImage.url,
+				title: newImage.title,
+				location: newImage.location,
+				index: newIndex
+			});
+		}
+	};
+
+	const handleNextImageTouch = () => {
+		if (selectedImage) {
+			const newIndex = (selectedImage.index + 1) % images.length;
+			const newImage = images[newIndex];
+			setSelectedImage({
+				url: newImage.fullSizeUrl || newImage.url,
+				title: newImage.title,
+				location: newImage.location,
+				index: newIndex
+			});
+		}
+	};
+
 	const handleGoogleEarthClick = (location: { lat: number; lng: number; name: string; url?: string }) => {
 		// Use custom URL if provided, otherwise construct Google Earth Web URL
 		const googleEarthUrl = location.url || `https://earth.google.com/web/@${location.lat},${location.lng},0a,1000d,35y,0h,0t,0r`;
@@ -350,9 +376,6 @@ export const MusicGallery = React.memo(function MusicGallery({
 						{/* Modal Content Container */}
 						<div 
 							className="fixed inset-0 z-[10000] flex items-center justify-center pointer-events-none"
-							onTouchStart={onTouchStart}
-							onTouchMove={onTouchMove}
-							onTouchEnd={onTouchEnd}
 						>
 							{/* Close Button */}
 							<button
@@ -362,7 +385,7 @@ export const MusicGallery = React.memo(function MusicGallery({
 									e.stopPropagation();
 									setSelectedImage(null);
 								}}
-								className="pointer-events-auto fixed top-2 right-2 md:top-6 md:right-6 w-12 h-12 md:w-12 md:h-12 flex items-center justify-center rounded-full bg-white/20 hover:bg-white/30 backdrop-blur-sm border-2 border-white/30 transition-all text-white text-2xl z-[10002]"
+								className="pointer-events-auto fixed top-2 right-2 md:top-6 md:right-6 w-14 h-14 md:w-16 md:h-16 flex items-center justify-center rounded-full bg-white/25 hover:bg-white/35 active:bg-white/45 backdrop-blur-sm border-2 border-white/40 transition-all text-white text-2xl z-[10003]"
 								style={{ touchAction: 'none' }}
 								aria-label="Close"
 							>
@@ -378,13 +401,13 @@ export const MusicGallery = React.memo(function MusicGallery({
 								onTouchEnd={(e) => {
 									e.preventDefault();
 									e.stopPropagation();
-									handlePrevImage(e);
+									handlePrevImageTouch();
 								}}
-								className="pointer-events-auto fixed left-2 top-1/2 -translate-y-1/2 md:left-6 w-12 h-12 md:w-14 md:h-14 flex items-center justify-center rounded-full bg-white/20 hover:bg-white/30 backdrop-blur-sm border-2 border-white/30 transition-all text-white z-[10002]"
+								className="pointer-events-auto fixed left-2 top-1/2 -translate-y-1/2 md:left-6 w-14 h-14 md:w-16 md:h-16 flex items-center justify-center rounded-full bg-white/25 hover:bg-white/35 active:bg-white/45 backdrop-blur-sm border-2 border-white/40 transition-all text-white z-[10003]"
 								style={{ touchAction: 'none' }}
 								aria-label="Previous"
 							>
-								<ChevronLeft className="w-6 h-6 md:w-7 md:h-7" />
+								<ChevronLeft className="w-7 h-7 md:w-8 md:h-8" />
 							</button>
 
 							{/* Next Button */}
@@ -396,13 +419,13 @@ export const MusicGallery = React.memo(function MusicGallery({
 								onTouchEnd={(e) => {
 									e.preventDefault();
 									e.stopPropagation();
-									handleNextImage(e);
+									handleNextImageTouch();
 								}}
-								className="pointer-events-auto fixed right-2 top-1/2 -translate-y-1/2 md:right-6 w-12 h-12 md:w-14 md:h-14 flex items-center justify-center rounded-full bg-white/20 hover:bg-white/30 backdrop-blur-sm border-2 border-white/30 transition-all text-white z-[10002]"
+								className="pointer-events-auto fixed right-2 top-1/2 -translate-y-1/2 md:right-6 w-14 h-14 md:w-16 md:h-16 flex items-center justify-center rounded-full bg-white/25 hover:bg-white/35 active:bg-white/45 backdrop-blur-sm border-2 border-white/40 transition-all text-white z-[10003]"
 								style={{ touchAction: 'none' }}
 								aria-label="Next"
 							>
-								<ChevronRight className="w-6 h-6 md:w-7 md:h-7" />
+								<ChevronRight className="w-7 h-7 md:w-8 md:h-8" />
 							</button>
 
 							{/* Fixed Frame Container */}
@@ -422,6 +445,9 @@ export const MusicGallery = React.memo(function MusicGallery({
 									padding: '2rem'
 								}}
 								onClick={(e) => e.stopPropagation()}
+								onTouchStart={onTouchStart}
+								onTouchMove={onTouchMove}
+								onTouchEnd={onTouchEnd}
 							>
 								{/* Counter */}
 								<div className="text-white/50 text-xs md:text-sm font-light flex-shrink-0 mb-1">

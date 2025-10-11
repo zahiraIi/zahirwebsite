@@ -294,10 +294,10 @@ export default function Home() {
       >
         <div className="max-w-6xl w-full">
           {/* Header Section with Name and Photo */}
-          <div className="mb-16 md:mb-20 flex flex-col md:flex-row items-start md:items-center justify-between gap-8">
+          <div className="mb-16 md:mb-20 flex flex-col md:flex-row items-center md:items-center justify-between gap-8">
             {/* Name and Subtitle */}
             <motion.div
-              className="flex-1"
+              className="flex-1 text-center md:text-left"
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ 
@@ -377,7 +377,7 @@ export default function Home() {
 
               {/* Social Icons */}
               <motion.div 
-                className="flex gap-8"
+                className="flex gap-8 justify-center md:justify-start"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8, delay: 1.0, ease: [0.16, 1, 0.3, 1] }}
