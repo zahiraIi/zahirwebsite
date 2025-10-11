@@ -439,19 +439,6 @@ export default function Home() {
         </div>
       </motion.main>
 
-      {/* Bottom of Screen Blur */}
-      <div className="fixed bottom-0 left-0 right-0 pointer-events-none z-[2]">
-        <GradualBlur
-          target="viewport"
-          position="bottom"
-          height="12rem"
-          strength={0.5}
-          divCount={8}
-          curve="bezier"
-          exponential={true}
-          opacity={1}
-        />
-      </div>
     </div>
   );
 }

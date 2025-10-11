@@ -357,7 +357,13 @@ export const MusicGallery = React.memo(function MusicGallery({
 							{/* Close Button */}
 							<button
 								onClick={() => setSelectedImage(null)}
-								className="pointer-events-auto fixed top-4 right-4 md:top-6 md:right-6 w-10 h-10 md:w-12 md:h-12 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 transition-all text-white text-2xl z-[10001]"
+								onTouchEnd={(e) => {
+									e.preventDefault();
+									e.stopPropagation();
+									setSelectedImage(null);
+								}}
+								className="pointer-events-auto fixed top-2 right-2 md:top-6 md:right-6 w-12 h-12 md:w-12 md:h-12 flex items-center justify-center rounded-full bg-white/20 hover:bg-white/30 backdrop-blur-sm border-2 border-white/30 transition-all text-white text-2xl z-[10002]"
+								style={{ touchAction: 'none' }}
 								aria-label="Close"
 							>
 								×
@@ -369,10 +375,16 @@ export const MusicGallery = React.memo(function MusicGallery({
 									e.stopPropagation();
 									handlePrevImage(e);
 								}}
-								className="pointer-events-auto fixed left-4 top-1/2 -translate-y-1/2 md:left-6 w-10 h-10 md:w-12 md:h-12 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 transition-all text-white z-[10001]"
+								onTouchEnd={(e) => {
+									e.preventDefault();
+									e.stopPropagation();
+									handlePrevImage(e);
+								}}
+								className="pointer-events-auto fixed left-2 top-1/2 -translate-y-1/2 md:left-6 w-12 h-12 md:w-14 md:h-14 flex items-center justify-center rounded-full bg-white/20 hover:bg-white/30 backdrop-blur-sm border-2 border-white/30 transition-all text-white z-[10002]"
+								style={{ touchAction: 'none' }}
 								aria-label="Previous"
 							>
-								<ChevronLeft className="w-5 h-5 md:w-6 md:h-6" />
+								<ChevronLeft className="w-6 h-6 md:w-7 md:h-7" />
 							</button>
 
 							{/* Next Button */}
@@ -381,10 +393,16 @@ export const MusicGallery = React.memo(function MusicGallery({
 									e.stopPropagation();
 									handleNextImage(e);
 								}}
-								className="pointer-events-auto fixed right-4 top-1/2 -translate-y-1/2 md:right-6 w-10 h-10 md:w-12 md:h-12 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 transition-all text-white z-[10001]"
+								onTouchEnd={(e) => {
+									e.preventDefault();
+									e.stopPropagation();
+									handleNextImage(e);
+								}}
+								className="pointer-events-auto fixed right-2 top-1/2 -translate-y-1/2 md:right-6 w-12 h-12 md:w-14 md:h-14 flex items-center justify-center rounded-full bg-white/20 hover:bg-white/30 backdrop-blur-sm border-2 border-white/30 transition-all text-white z-[10002]"
+								style={{ touchAction: 'none' }}
 								aria-label="Next"
 							>
-								<ChevronRight className="w-5 h-5 md:w-6 md:h-6" />
+								<ChevronRight className="w-6 h-6 md:w-7 md:h-7" />
 							</button>
 
 							{/* Fixed Frame Container */}
