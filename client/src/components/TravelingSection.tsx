@@ -22,8 +22,8 @@ interface TravelingSectionProps {
 
 export default function TravelingSection({ images }: TravelingSectionProps) {
   return (
-    <section className="relative flex items-center justify-center py-16 md:py-20 overflow-hidden">
-      <div className="w-full px-8 pb-32 md:pb-40">
+    <section className="relative flex items-center justify-center py-12 md:py-16 lg:py-20 overflow-hidden">
+      <div className="w-full px-4 md:px-6 lg:px-8 pb-24 md:pb-32 lg:pb-40">
         <motion.div
           initial={{ opacity: 0, scale: 0.95, y: 30 }}
           whileInView={{ opacity: 1, scale: 1, y: 0 }}
@@ -35,7 +35,7 @@ export default function TravelingSection({ images }: TravelingSectionProps) {
           }}
         >
           <motion.h2 
-            className="text-5xl md:text-7xl font-bold mb-16 text-white text-center"
+            className="text-4xl md:text-6xl lg:text-7xl font-bold mb-12 md:mb-16 text-white text-center"
             initial={{ opacity: 0, y: -20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}

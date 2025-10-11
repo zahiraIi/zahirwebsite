@@ -32,7 +32,7 @@ export default function ProjectDialog({
         className="group"
       >
         {/* Title with Logo */}
-        <div className="mb-4 flex items-center gap-4">
+        <div className="mb-4 flex items-center gap-3 md:gap-4">
           {logoImage && (
             <div className="flex-shrink-0">
               <img 
@@ -40,10 +40,10 @@ export default function ProjectDialog({
                 alt={`${title} logo`}
                 className={
                   title === "San Jose State University American Society of Civil Engineers" 
-                    ? "h-12 md:h-16 w-auto max-w-[160px] md:max-w-[200px] p-2 rounded-l border-2 border-white/20 shadow-lg bg-black/20 project-logo object-contain"
+                    ? "h-10 md:h-12 lg:h-16 w-auto max-w-[120px] md:max-w-[160px] lg:max-w-[200px] p-2 rounded-l border-2 border-white/20 shadow-lg bg-black/20 project-logo object-contain"
                     : title.includes("UCSD")
-                    ? "w-16 h-16 md:w-20 md:h-20 rounded-full object-cover border-2 border-white/20 shadow-lg project-logo"
-                    : "w-16 h-16 md:w-20 md:h-20 rounded-xl object-cover border-2 border-white/20 shadow-lg project-logo"
+                    ? "w-12 h-12 md:w-16 md:h-16 lg:w-20 lg:h-20 rounded-full object-cover border-2 border-white/20 shadow-lg project-logo"
+                    : "w-12 h-12 md:w-16 md:h-16 lg:w-20 lg:h-20 rounded-xl object-cover border-2 border-white/20 shadow-lg project-logo"
                 }
               />
             </div>
@@ -54,13 +54,13 @@ export default function ProjectDialog({
                 href={externalUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-white font-normal text-2xl md:text-3xl hover:text-white/80 transition-colors"
+                className="text-white font-normal text-lg md:text-2xl lg:text-3xl hover:text-white/80 transition-colors"
                 style={{ textShadow: '0 2px 8px rgba(0, 0, 0, 0.8), 0 0 20px rgba(0, 0, 0, 0.5)' }}
               >
                 {title}
               </a>
             ) : (
-              <span className="text-white font-normal text-2xl md:text-3xl" style={{ textShadow: '0 2px 8px rgba(0, 0, 0, 0.8), 0 0 20px rgba(0, 0, 0, 0.5)' }}>
+              <span className="text-white font-normal text-lg md:text-2xl lg:text-3xl" style={{ textShadow: '0 2px 8px rgba(0, 0, 0, 0.8), 0 0 20px rgba(0, 0, 0, 0.5)' }}>
                 {title}
               </span>
             )}
@@ -68,7 +68,7 @@ export default function ProjectDialog({
         </div>
         
         <p 
-          className="text-xl leading-relaxed text-white transition-colors duration-200" 
+          className="text-base md:text-lg lg:text-xl leading-relaxed text-white transition-colors duration-200" 
           style={{ textShadow: '0 1px 2px rgba(0, 0, 0, 0.3)' }}
         >
           {description}
@@ -115,7 +115,7 @@ export default function ProjectDialog({
       className="group"
     >
       {/* Title with Logo */}
-      <div className="mb-4 flex items-center gap-4">
+      <div className="mb-4 flex items-center gap-3 md:gap-4">
         {logoImage && (
           <div className="flex-shrink-0">
             <img 
@@ -123,16 +123,16 @@ export default function ProjectDialog({
               alt={`${title} logo`}
               className={
                 title === "SJSU ASCE" 
-                  ? "h-12 md:h-16 w-auto max-w-[160px] md:max-w-[200px] p-2 rounded-xl border-2 border-white/20 shadow-lg bg-black/20 project-logo object-contain"
+                  ? "h-10 md:h-12 lg:h-16 w-auto max-w-[120px] md:max-w-[160px] lg:max-w-[200px] p-2 rounded-xl border-2 border-white/20 shadow-lg bg-black/20 project-logo object-contain"
                   : title.includes("UCSD")
-                  ? "w-16 h-16 md:w-20 md:h-20 rounded-full object-cover border-2 border-white/20 shadow-lg project-logo"
-                  : "w-16 h-16 md:w-20 md:h-20 rounded-xl object-cover border-2 border-white/20 shadow-lg project-logo"
+                  ? "w-12 h-12 md:w-16 md:h-16 lg:w-20 lg:h-20 rounded-full object-cover border-2 border-white/20 shadow-lg project-logo"
+                  : "w-12 h-12 md:w-16 md:h-16 lg:w-20 lg:h-20 rounded-xl object-cover border-2 border-white/20 shadow-lg project-logo"
               }
             />
           </div>
         )}
         <div className="flex-1 flex items-baseline justify-between flex-wrap gap-4">
-          <span className="text-white font-normal text-2xl md:text-3xl" style={{ textShadow: '0 2px 8px rgba(0, 0, 0, 0.8), 0 0 20px rgba(0, 0, 0, 0.5)' }}>
+          <span className="text-white font-normal text-lg md:text-2xl lg:text-3xl" style={{ textShadow: '0 2px 8px rgba(0, 0, 0, 0.8), 0 0 20px rgba(0, 0, 0, 0.5)' }}>
             {title}
           </span>
           {externalUrl && (
@@ -140,10 +140,10 @@ export default function ProjectDialog({
               href={externalUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-sm text-white/60 hover:text-white transition-colors flex items-center gap-1"
+              className="text-xs md:text-sm text-white/60 hover:text-white transition-colors flex items-center gap-1"
             >
               Open in new tab
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-3 h-3 md:w-4 md:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
               </svg>
             </a>
@@ -152,7 +152,7 @@ export default function ProjectDialog({
       </div>
 
       <p 
-        className="text-xl leading-relaxed text-white transition-colors duration-200 mb-6" 
+        className="text-base md:text-lg lg:text-xl leading-relaxed text-white transition-colors duration-200 mb-6" 
         style={{ textShadow: '0 1px 2px rgba(0, 0, 0, 0.3)' }}
       >
         {description}
@@ -166,7 +166,7 @@ export default function ProjectDialog({
         viewport={{ once: true }}
         transition={{ duration: 0.6, delay: delay + 0.2 }}
       >
-        <div className="project-iframe-wrapper" style={{ height: '600px' }}>
+        <div className="project-iframe-wrapper" style={{ height: '400px' }}>
           <iframe
             src={projectUrl}
             className="project-iframe"

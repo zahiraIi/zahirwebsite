@@ -42,9 +42,9 @@ const projects: Project[] = [
 
 export default function ProjectsSection() {
   return (
-    <section className="relative py-16 md:py-20 overflow-visible min-h-[80vh]">
+    <section className="relative py-12 md:py-16 lg:py-20 overflow-visible min-h-[80vh]">
       <div className="w-full pb-8">
-        <div className="rounded-2xl border border-white/20 bg-white/10 backdrop-blur-none shadow-xl px-6 md:px-8 py-6 md:py-8">
+        <div className="rounded-2xl border border-white/20 bg-white/10 backdrop-blur-md md:backdrop-blur-lg shadow-xl px-4 md:px-6 lg:px-8 py-6 md:py-8">
         <motion.div
           initial={{ opacity: 0, scale: 0.95, y: 30 }}
           whileInView={{ opacity: 1, scale: 1, y: 0 }}
@@ -57,7 +57,7 @@ export default function ProjectsSection() {
           className="relative w-full"
         >
           <motion.h2 
-            className="text-5xl md:text-7xl font-bold mb-10 text-white"
+            className="text-4xl md:text-6xl lg:text-7xl font-bold mb-8 md:mb-10 text-white"
             initial={{ opacity: 0, x: -20 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}

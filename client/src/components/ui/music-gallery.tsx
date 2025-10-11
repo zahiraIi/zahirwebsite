@@ -73,7 +73,7 @@ const ImageCard = ({
 			className={`aspect-square w-full cursor-pointer overflow-hidden ${borderRadius} ${borderWidth} border-white/30 bg-black/20 transition-all duration-200 ${isInView ? 'opacity-100' : 'opacity-0'}`}
 			style={{ 
 				willChange: isInView ? 'auto' : 'opacity',
-				boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3)',
+				boxShadow: '0 6px 16px rgba(0, 0, 0, 0.4)',
 				backfaceVisibility: 'hidden',
 				WebkitBackfaceVisibility: 'hidden'
 			}}
@@ -300,9 +300,9 @@ export const MusicGallery = React.memo(function MusicGallery({
 		}
 	};
 
-	// Optimized grid layout matching zainkhatri.com aesthetic
+	// Optimized grid layout for mobile-first design
 	const maxWidth = 'max-w-[1400px]';
-	const gap = 'gap-3 md:gap-4';
+	const gap = 'gap-4 md:gap-6';
 	const gridCols = 'grid-cols-2 md:grid-cols-3';
 	const padding = 'px-4 md:px-6 lg:px-8';
 

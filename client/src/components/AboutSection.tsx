@@ -2,11 +2,11 @@ import { motion } from "framer-motion";
 
 export default function AboutSection() {
   return (
-    <section className="relative py-16 md:py-20 overflow-visible">
+    <section className="relative py-12 md:py-16 lg:py-20 overflow-visible">
       <div className="w-full pb-8">
-        <div className="rounded-2xl border border-white/0 bg-white/10 backdrop-blur-l shadow-xl px-6 md:px-8 py-6 md:py-8">
+        <div className="rounded-2xl border border-white/0 bg-white/10 backdrop-blur-md md:backdrop-blur-lg shadow-xl px-4 md:px-6 lg:px-8 py-6 md:py-8">
         <motion.h2 
-          className="text-5xl md:text-7xl font-bold mb-10 text-white"
+          className="text-4xl md:text-6xl lg:text-7xl font-bold mb-8 md:mb-10 text-white"
           initial={{ opacity: 0, x: -50 }}
           whileInView={{ opacity: 1, x: 0 }}
           viewport={{ once: true }}
@@ -15,7 +15,7 @@ export default function AboutSection() {
           About Me
         </motion.h2>
         
-        <div className="space-y-8 text-xl md:text-4xl font-light leading-relaxed">
+        <div className="space-y-6 md:space-y-8 text-lg md:text-2xl lg:text-4xl font-light leading-relaxed">
             <motion.p
               initial={{ opacity: 0, x: -50 }}
               whileInView={{ opacity: 1, x: 0 }}
