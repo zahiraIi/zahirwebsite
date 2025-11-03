@@ -1,0 +1,35 @@
+/**
+ * MusicSection component - Vanilla JS
+ */
+
+import { createMusicGallery } from './MusicGallery.js';
+
+export function createMusicSection(images) {
+  const section = document.createElement('section');
+  section.className = 'relative flex items-center justify-center py-12 md:py-16 lg:py-20 overflow-hidden';
+  
+  const wrapper = document.createElement('div');
+  wrapper.className = 'w-full px-4 md:px-6 lg:px-8';
+  
+  const content = document.createElement('div');
+  content.className = 'relative w-full fade-in-up';
+  
+  const title = document.createElement('h2');
+  title.className = 'text-4xl md:text-6xl lg:text-7xl font-bold mb-12 md:mb-16 text-white text-center fade-in-up';
+  title.textContent = 'Music';
+  title.dataset.delay = '100';
+  
+  const gallery = createMusicGallery(images, {
+    sizeVariant: 'large',
+    enableLinks: true
+  });
+  
+  content.appendChild(title);
+  content.appendChild(gallery);
+  
+  wrapper.appendChild(content);
+  section.appendChild(wrapper);
+  
+  return section;
+}
+
