@@ -207,13 +207,19 @@ export function initFractalNoiseShader(options = {}) {
       `;
 
       function init() {
-        const width = container.offsetWidth || window.innerWidth;
-        const height = container.offsetHeight || window.innerHeight;
+        // Use lower resolution on mobile for better performance
+        const isMobile = window.innerWidth <= 768;
+        const scale = isMobile ? 0.5 : 1;
         
-        if (width === 0 || height === 0) {
+        const containerWidth = container.offsetWidth || window.innerWidth;
+        const containerHeight = container.offsetHeight || window.innerHeight;
+        
+        if (containerWidth === 0 || containerHeight === 0) {
           throw new Error('Container has invalid dimensions');
         }
         
+        const width = containerWidth * scale;
+        const height = containerHeight * scale;
         const aspect = width / height;
         startTime = performance.now();
 
@@ -221,13 +227,14 @@ export function initFractalNoiseShader(options = {}) {
         camera = new OrthographicCamera(-1, 1, 1, -1, 0, 1);
 
         renderer = new WebGLRenderer({
-          antialias: true,
+          antialias: !isMobile, // Disable antialias on mobile for performance
           alpha: true,
           powerPreference: 'high-performance'
         });
+        
         renderer.setSize(width, height);
-        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-        renderer.setClearColor(0x000000, 0);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, isMobile ? 1 : 2));
+        renderer.setClearColor(0x000000, 0); // Transparent background for proper alpha blending
         
         const canvas = renderer.domElement;
         canvas.style.cssText = `
@@ -238,6 +245,7 @@ export function initFractalNoiseShader(options = {}) {
           top: 0;
           left: 0;
           pointer-events: none;
+          image-rendering: ${isMobile ? 'pixelated' : 'auto'};
         `;
         
         container.appendChild(canvas);
@@ -255,16 +263,28 @@ export function initFractalNoiseShader(options = {}) {
         mesh = new Mesh(geometry, material);
         scene.add(mesh);
         
-        console.log('FractalNoiseShader: Initialized successfully');
+        console.log('FractalNoiseShader: Initialized successfully', { 
+          scale, 
+          isMobile, 
+          canvasSize: { width, height },
+          containerSize: { width: containerWidth, height: containerHeight }
+        });
       }
 
       function resize() {
-        const width = container.offsetWidth;
-        const height = container.offsetHeight;
+        // Use lower resolution on mobile for better performance
+        const isMobile = window.innerWidth <= 768;
+        const scale = isMobile ? 0.5 : 1;
+        
+        const containerWidth = container.offsetWidth;
+        const containerHeight = container.offsetHeight;
+        
+        const width = containerWidth * scale;
+        const height = containerHeight * scale;
 
         if (renderer) {
           renderer.setSize(width, height);
-          renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+          renderer.setPixelRatio(Math.min(window.devicePixelRatio, isMobile ? 1 : 2));
         }
 
         if (material && material.uniforms) {
@@ -297,10 +317,25 @@ export function initFractalNoiseShader(options = {}) {
       return () => {
         if (animationId) cancelAnimationFrame(animationId);
         window.removeEventListener('resize', resize);
-        if (renderer && renderer.domElement.parentNode) {
-          renderer.domElement.parentNode.removeChild(renderer.domElement);
+        
+        if (renderer) {
+          const canvas = renderer.domElement;
+          if (canvas && canvas.parentNode) {
+            canvas.parentNode.removeChild(canvas);
+          }
+          
+          // Proper WebGL context cleanup
+          const gl = renderer.getContext();
+          if (gl) {
+            const loseContext = gl.getExtension('WEBGL_lose_context');
+            if (loseContext) {
+              loseContext.loseContext();
+            }
+          }
+          
+          renderer.dispose();
         }
-        if (renderer) renderer.dispose();
+        
         if (material) material.dispose();
         if (mesh && mesh.geometry) mesh.geometry.dispose();
       };

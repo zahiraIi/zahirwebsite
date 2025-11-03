@@ -18,7 +18,7 @@ export function createAboutSection() {
   title.textContent = 'About Me';
   
   const content = document.createElement('div');
-  content.className = 'space-y-6 md:space-y-8 text-xl md:text-4xl font-light leading-relaxed';
+  content.className = 'space-y-6 md:space-y-8 text-xl md:text-4xl font-light leading-relaxed section-content-mobile-center';
   
   const paragraph1 = document.createElement('p');
   paragraph1.className = 'text-white fade-in-up';

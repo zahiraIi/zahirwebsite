@@ -111,7 +111,7 @@ export function createProjectCard(project, delay = 0.2) {
   
   // Description
   const desc = document.createElement('p');
-  desc.className = 'text-base md:text-lg lg:text-xl leading-relaxed text-white transition-colors duration-200 mb-6';
+  desc.className = 'text-base md:text-lg lg:text-xl leading-relaxed text-white transition-colors duration-200 mb-6 section-content-mobile-center';
   desc.style.textShadow = '0 1px 2px rgba(0, 0, 0, 0.3)';
   desc.textContent = description;
   container.appendChild(desc);

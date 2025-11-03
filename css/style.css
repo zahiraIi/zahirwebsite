@@ -520,6 +520,17 @@ img, video, iframe {
   }
 }
 
+/* Section content/description alignment - center on mobile, left on desktop */
+.section-content-mobile-center {
+  text-align: center;
+}
+
+@media (min-width: 768px) {
+  .section-content-mobile-center {
+    text-align: left;
+  }
+}
+
 /* Project title wrapping - allow wrapping on mobile */
 .project-title {
   word-break: break-word;
