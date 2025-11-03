@@ -20,7 +20,7 @@ export function createProjectsSection() {
   content.className = 'relative w-full fade-in-up';
   
   const title = document.createElement('h2');
-  title.className = 'text-4xl md:text-6xl lg:text-7xl font-bold mb-8 md:mb-10 text-white fade-in-up';
+  title.className = 'text-4xl md:text-6xl lg:text-7xl font-bold mb-8 md:mb-10 text-white fade-in-up section-title-mobile-center';
   title.textContent = 'Projects';
   title.dataset.delay = '100';
   

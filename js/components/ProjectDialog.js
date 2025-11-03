@@ -24,7 +24,7 @@ export function createProjectCard(project, delay = 0.2) {
   const titleContainer = document.createElement('div');
   
   // All projects use left alignment (same as UCSD)
-  titleContainer.className = 'mb-4 flex items-center gap-6 md:gap-8';
+  titleContainer.className = 'mb-4 flex items-center gap-6 md:gap-8 project-title-container';
   
   if (logoImage) {
     const logoContainer = document.createElement('div');
@@ -76,7 +76,7 @@ export function createProjectCard(project, delay = 0.2) {
   const titleDiv = document.createElement('div');
   
   // All projects use flex-1 for consistent left alignment
-  titleDiv.className = 'flex-1 flex items-center';
+  titleDiv.className = 'flex-1 flex items-center project-title-div';
   titleDiv.style.alignSelf = 'stretch';
   
   if (externalUrl) {
@@ -84,24 +84,24 @@ export function createProjectCard(project, delay = 0.2) {
     titleLink.href = externalUrl;
     titleLink.target = '_blank';
     titleLink.rel = 'noopener noreferrer';
-    titleLink.className = 'text-white font-light text-xl md:text-4xl hover:text-white/80 transition-colors';
+    titleLink.className = 'text-white font-light text-xl md:text-4xl hover:text-white/80 transition-colors project-title';
     titleLink.style.textShadow = '0 2px 8px rgba(0, 0, 0, 0.8), 0 0 20px rgba(0, 0, 0, 0.5)';
     titleLink.style.display = 'flex';
     titleLink.style.alignItems = 'center';
     titleLink.style.lineHeight = '1.2';
-    titleLink.style.whiteSpace = 'nowrap';
     titleLink.style.textDecoration = 'none';
+    
     titleLink.textContent = title;
     titleDiv.appendChild(titleLink);
   } else {
     const titleSpan = document.createElement('span');
-    titleSpan.className = 'text-white font-light text-xl md:text-4xl';
+    titleSpan.className = 'text-white font-light text-xl md:text-4xl project-title';
     titleSpan.style.textShadow = '0 2px 8px rgba(0, 0, 0, 0.8), 0 0 20px rgba(0, 0, 0, 0.5)';
     titleSpan.style.display = 'flex';
     titleSpan.style.alignItems = 'center';
     titleSpan.style.lineHeight = '1.2';
-    titleSpan.style.whiteSpace = 'nowrap';
     titleSpan.style.textDecoration = 'none';
+    
     titleSpan.textContent = title;
     titleDiv.appendChild(titleSpan);
   }

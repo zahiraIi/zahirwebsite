@@ -228,8 +228,8 @@ export function createMusicGallery(images, options = {}) {
       ${position === 'left' ? 'left: 0.5rem;' : 'right: 0.5rem;'}
       top: 50%;
       transform: translateY(-50%);
-      width: 3.5rem;
-      height: 3.5rem;
+      width: 2.5rem;
+      height: 2.5rem;
       z-index: 10003;
       pointer-events: auto;
       touch-action: none;
@@ -264,8 +264,8 @@ export function createMusicGallery(images, options = {}) {
     const iconWrapper = document.createElement('span');
     iconWrapper.className = 'glass-button-text';
     iconWrapper.style.cssText = `
-      width: 1.75rem;
-      height: 1.75rem;
+      width: 1.25rem;
+      height: 1.25rem;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -305,8 +305,8 @@ export function createMusicGallery(images, options = {}) {
       position: fixed;
       top: 0.5rem;
       right: 0.5rem;
-      width: 3.5rem;
-      height: 3.5rem;
+      width: 2.5rem;
+      height: 2.5rem;
       z-index: 10003;
       pointer-events: auto;
       touch-action: none;
@@ -342,7 +342,7 @@ export function createMusicGallery(images, options = {}) {
     const textWrapper = document.createElement('span');
     textWrapper.className = 'glass-button-text';
     textWrapper.style.cssText = `
-      font-size: 1.25rem;
+      font-size: 1rem;
       line-height: 1;
       display: flex;
       align-items: center;
@@ -350,6 +350,12 @@ export function createMusicGallery(images, options = {}) {
       width: 100%;
       height: 100%;
     `;
+    
+    // Responsive font size for larger screens
+    if (window.matchMedia && window.matchMedia('(min-width: 768px)').matches) {
+      textWrapper.style.fontSize = '1.25rem';
+    }
+    
     textWrapper.textContent = '×';
     
     btn.appendChild(textWrapper);

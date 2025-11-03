@@ -490,6 +490,16 @@ img, video, iframe {
   z-index: 0.5;
   pointer-events: none;
   mix-blend-mode: multiply;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(0.5px);
+}
+
+/* Reduce overlay opacity on desktop for more vivid colors */
+@media (min-width: 768px) {
+  #matte-overlay {
+    background: rgba(0, 0, 0, 0.2);
+    backdrop-filter: blur(0.3px);
+  }
 }
 
 /* Project logo styles - ensure proper sizing */
@@ -497,6 +507,51 @@ img, video, iframe {
   max-width: 100%;
   height: auto;
   display: block;
+}
+
+/* Section title alignment - center on mobile, left on desktop */
+.section-title-mobile-center {
+  text-align: center;
+}
+
+@media (min-width: 768px) {
+  .section-title-mobile-center {
+    text-align: left;
+  }
+}
+
+/* Project title wrapping - allow wrapping on mobile */
+.project-title {
+  word-break: break-word;
+  overflow-wrap: break-word;
+  max-width: 100%;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 767px) {
+  .project-title {
+    display: block !important;
+    white-space: normal;
+  }
+}
+
+@media (min-width: 768px) {
+  .project-title {
+    white-space: nowrap;
+    display: flex;
+  }
+}
+
+/* Project title container - allow wrapping on mobile */
+.project-title-container {
+  flex-wrap: wrap;
+  min-width: 0;
+}
+
+/* Project title div - allow wrapping on mobile */
+.project-title-div {
+  min-width: 0;
+  flex-wrap: wrap;
 }
 
 /* Project iframe styles */

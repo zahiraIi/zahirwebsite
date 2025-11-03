@@ -13,9 +13,9 @@ export function createAboutSection() {
   card.className = 'rounded-2xl border border-white/0 bg-white/10 backdrop-blur-md md:backdrop-blur-lg shadow-xl px-4 md:px-6 lg:px-8 py-6 md:py-8';
   
   const title = document.createElement('h2');
-  title.className = 'text-4xl md:text-6xl lg:text-7xl font-bold mb-8 md:mb-10 text-white fade-in-up';
-  title.textContent = 'About Me';
+  title.className = 'text-4xl md:text-6xl lg:text-7xl font-bold mb-8 md:mb-10 text-white fade-in-up section-title-mobile-center';
   title.style.textShadow = '0 1px 2px rgba(0, 0, 0, 0.3)';
+  title.textContent = 'About Me';
   
   const content = document.createElement('div');
   content.className = 'space-y-6 md:space-y-8 text-xl md:text-4xl font-light leading-relaxed';
