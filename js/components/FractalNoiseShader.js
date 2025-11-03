@@ -138,10 +138,10 @@ export function initFractalNoiseShader(options = {}) {
           colour = clamp(colour, 0.05, 1.0);
           
           // Dark blue color scheme with white accents
-          // Deep indigo/navy blue tones with white highlights
-          vec3 darkBlue = vec3(0.102, 0.122, 0.239);           // #1a1f3d - Dark blue base
-          vec3 mediumBlue = vec3(0.165, 0.247, 0.373);       // #2a3f5f - Medium blue
-          vec3 lightBlue = vec3(0.227, 0.373, 0.498);       // #3a5f7f - Light blue
+          // Deep indigo/navy blue tones with white highlights - deeper blues for richer tone
+          vec3 darkBlue = vec3(0.08, 0.10, 0.22);            // Deeper dark blue base
+          vec3 mediumBlue = vec3(0.13, 0.20, 0.32);         // Deeper medium blue
+          vec3 lightBlue = vec3(0.18, 0.30, 0.42);           // Deeper light blue
           vec3 whiteAccent = vec3(1.0, 1.0, 1.0);             // #ffffff - White accents
           
           // Use original colour values to map to blue palette
@@ -194,11 +194,15 @@ export function initFractalNoiseShader(options = {}) {
           colour = mappedColour;
           colour = clamp(colour, 0.05, 1.0);
           
-          // Darken slightly for better text readability
-          colour *= 0.75;
+          // Slightly less darkening to maintain color vibrancy while keeping readability
+          colour *= 0.80;
+          
+          // Enhance color saturation slightly for more vivid blues
+          float luminance = dot(colour, vec3(0.299, 0.587, 0.114));
+          colour = mix(vec3(luminance), colour, 1.15);
           
           // Original final color output
-          gl_FragColor = vec4(colour + abs(colour) * 0.5, 1.0);
+          gl_FragColor = vec4(colour + abs(colour) * 0.4, 1.0);
         }
       `;
 

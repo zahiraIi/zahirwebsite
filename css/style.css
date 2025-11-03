@@ -494,11 +494,11 @@ img, video, iframe {
   backdrop-filter: blur(0.5px);
 }
 
-/* Reduce overlay opacity on desktop for more vivid colors */
+/* Reduce overlay opacity on desktop for more vivid colors, but keep deeper blues */
 @media (min-width: 768px) {
   #matte-overlay {
-    background: rgba(0, 0, 0, 0.2);
-    backdrop-filter: blur(0.3px);
+    background: rgba(0, 0, 0, 0.28);
+    backdrop-filter: blur(0.4px);
   }
 }
 
