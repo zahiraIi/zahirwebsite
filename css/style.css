@@ -585,8 +585,8 @@ img, video, iframe {
   position: relative;
   border-radius: 8px;
   overflow: hidden;
-  background: rgb(15, 25, 35);
-  border: 2px solid rgb(40, 60, 80);
+  background: rgb(21, 26, 54); /* Van Gogh Starry Night deep navy blue */
+  border: 2px solid rgb(60, 80, 120); /* Lighter blue border inspired by Starry Night */
   align-self: stretch; /* Match height of controls panel */
 }
 

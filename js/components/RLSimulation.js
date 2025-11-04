@@ -49,7 +49,7 @@ class LearningRobot {
     this.startPoint = startPoint ? p5Instance.createVector(startPoint.x, startPoint.y) : p5Instance.createVector(x, y);
     
     // Physics
-    this.maxSpeed = 2.5;
+    this.maxSpeed = 6.5; // Increased speed range: 5-8 (set to 6.5 for balanced performance)
     this.maxForce = 0.15;
     this.worldWidth = worldWidth;
     this.worldHeight = worldHeight;
@@ -1198,7 +1198,7 @@ export function createRLSimulation(options = {}) {
   canvasContainer.className = 'rl-simulation-canvas-container';
   canvasContainer.style.position = 'relative';
   canvasContainer.style.overflow = 'hidden';
-  canvasContainer.style.background = 'rgb(15, 25, 35)';
+  canvasContainer.style.background = 'rgb(21, 26, 54)'; // Van Gogh Starry Night deep navy blue
   
   // Append controls panel first, then canvas container
   wrapper.appendChild(canvasContainer);
@@ -1351,8 +1351,8 @@ function initP5Sketch(container, statsDisplay, controls, syncHeightCallback) {
     let draggingObstacleIndex = -1;
     
     const colors = {
-      background: [15, 25, 35],
-      grid: [40, 60, 80],
+      background: [21, 26, 54], // Van Gogh Starry Night deep navy blue
+      grid: [40, 60, 100], // Lighter blue grid for contrast
       obstacle: [255, 100, 100],
       obstacleGlow: [255, 150, 150],
       start: [120, 200, 255],
