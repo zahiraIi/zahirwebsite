@@ -233,7 +233,9 @@ export function initFractalNoiseShader(options = {}) {
         });
         
         renderer.setSize(width, height);
-        renderer.setPixelRatio(Math.min(window.devicePixelRatio, isMobile ? 1 : 2));
+        // Adaptive pixel ratio: limit on mobile to reduce GPU work
+        const maxPR = isMobile ? 1.25 : 2;
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, maxPR));
         renderer.setClearColor(0x000000, 0); // Transparent background for proper alpha blending
         
         const canvas = renderer.domElement;
@@ -283,8 +285,9 @@ export function initFractalNoiseShader(options = {}) {
         const height = containerHeight * scale;
 
         if (renderer) {
-          renderer.setSize(width, height);
-          renderer.setPixelRatio(Math.min(window.devicePixelRatio, isMobile ? 1 : 2));
+        renderer.setSize(width, height);
+        const maxPR = isMobile ? 1.25 : 2;
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, maxPR));
         }
 
         if (material && material.uniforms) {
@@ -293,8 +296,20 @@ export function initFractalNoiseShader(options = {}) {
       }
 
       function animate() {
+        // Cap FPS on mobile to ~30 to reduce load
+        const isMobile = /Mobi|Android/i.test(navigator.userAgent);
+        const targetDelta = isMobile ? (1000 / 30) : (1000 / 60);
+        let last = animate._last || 0;
+        const now = performance.now();
+        const dt = now - last;
+        if (dt < targetDelta) {
+          animationId = requestAnimationFrame(animate);
+          return;
+        }
+        animate._last = now;
         animationId = requestAnimationFrame(animate);
-        const time = (performance.now() - startTime) * 0.001;
+        
+        const time = (now - startTime) * 0.001;
 
         if (material && material.uniforms && material.uniforms.u_time) {
           material.uniforms.u_time.value = time;
@@ -305,9 +320,21 @@ export function initFractalNoiseShader(options = {}) {
         }
       }
 
+      // Pause when tab hidden to save resources
+      function handleVisibility() {
+        if (document.hidden) {
+          if (animationId) cancelAnimationFrame(animationId);
+          animationId = null;
+        } else if (!animationId) {
+          animate._last = 0;
+          animate();
+        }
+      }
+
       try {
         init();
         window.addEventListener('resize', resize);
+        document.addEventListener('visibilitychange', handleVisibility);
         animate();
       } catch (error) {
         console.error('FractalNoiseShader error:', error);
@@ -317,6 +344,7 @@ export function initFractalNoiseShader(options = {}) {
       return () => {
         if (animationId) cancelAnimationFrame(animationId);
         window.removeEventListener('resize', resize);
+        document.removeEventListener('visibilitychange', handleVisibility);
         
         if (renderer) {
           const canvas = renderer.domElement;

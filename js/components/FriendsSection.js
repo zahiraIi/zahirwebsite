@@ -15,11 +15,12 @@ export function createFriendsSection(images) {
   content.className = 'relative w-full fade-in-up';
   
   const title = document.createElement('h2');
-  title.className = 'text-4xl md:text-6xl lg:text-7xl font-bold mb-12 md:mb-16 text-white text-center md:text-left fade-in-up';
+  title.className = 'text-4xl md:text-6xl lg:text-7xl font-bold mb-12 md:mb-16 text-white text-center md:text-center fade-in-up';
   title.textContent = 'Gallery';
   title.dataset.delay = '100';
   
   const galleryContainer = document.createElement('div');
+  galleryContainer.className = 'md:flex md:flex-col md:items-center';
   galleryContainer.style.cssText = 'content-visibility: auto; contain-intrinsic-size: auto 1200px;';
   
   const gallery = createMusicGallery(images, {

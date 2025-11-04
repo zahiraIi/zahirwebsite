@@ -260,7 +260,10 @@ export function initFluidGradient(options = {}) {
         alpha: true 
       });
       renderer.setSize(width, height);
-      renderer.setPixelRatio(window.devicePixelRatio);
+      // Adaptive pixel ratio: limit on mobile to reduce GPU work
+      const isMobile = /Mobi|Android/i.test(navigator.userAgent);
+      const maxPR = isMobile ? 1.25 : 2;
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, maxPR));
       container.appendChild(renderer.domElement);
 
       // Create render targets
@@ -386,6 +389,17 @@ export function initFluidGradient(options = {}) {
     }
 
     function animate() {
+      // Cap FPS on mobile to ~30 to reduce load
+      const isMobile = /Mobi|Android/i.test(navigator.userAgent);
+      const targetDelta = isMobile ? (1000 / 30) : (1000 / 60);
+      let last = animate._last || 0;
+      const now = performance.now();
+      const dt = now - last;
+      if (dt < targetDelta) {
+        animationId = requestAnimationFrame(animate);
+        return;
+      }
+      animate._last = now;
       animationId = requestAnimationFrame(animate);
       const time = performance.now() * 0.001;
 
@@ -459,6 +473,17 @@ export function initFluidGradient(options = {}) {
     });
     window.addEventListener('resize', resize);
 
+    // Pause when tab hidden to save resources
+    function handleVisibility() {
+      if (document.hidden) {
+        if (animationId) cancelAnimationFrame(animationId);
+        animationId = null;
+      } else if (!animationId) {
+        animate._last = 0;
+        animate();
+      }
+    }
+    document.addEventListener('visibilitychange', handleVisibility);
     // Start animation
     animate();
 
@@ -466,6 +491,7 @@ export function initFluidGradient(options = {}) {
     return () => {
       cancelAnimationFrame(animationId);
       window.removeEventListener('resize', resize);
+      document.removeEventListener('visibilitychange', handleVisibility);
       container.removeEventListener('mouseenter', handleMouseEnter);
       container.removeEventListener('mousemove', handleMouseMove);
       container.removeEventListener('mouseleave', handleMouseLeave);

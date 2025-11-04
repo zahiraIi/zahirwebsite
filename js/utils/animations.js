@@ -8,6 +8,12 @@
  */
 export function initScrollAnimations() {
   const animatedElements = document.querySelectorAll('.fade-in-up, .fade-in, .slide-up');
+  // Respect prefers-reduced-motion
+  const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (reduceMotion) {
+    animatedElements.forEach((el) => el.classList.add('visible'));
+    return;
+  }
   
   if (animatedElements.length === 0) return;
   
@@ -41,7 +47,9 @@ export function initScrollAnimations() {
  * Create a fade-in animation
  */
 export function fadeIn(element, duration = 300, delay = 0) {
-  element.style.transition = `opacity ${duration}ms ease-out`;
+  // Respect prefers-reduced-motion
+  const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  element.style.transition = `opacity ${reduceMotion ? 0 : duration}ms ease-out`;
   element.style.opacity = '0';
   
   setTimeout(() => {
@@ -53,7 +61,9 @@ export function fadeIn(element, duration = 300, delay = 0) {
  * Create a slide-up animation
  */
 export function slideUp(element, duration = 500, delay = 0) {
-  element.style.transition = `transform ${duration}ms ease-out, opacity ${duration}ms ease-out`;
+  const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const d = reduceMotion ? 0 : duration;
+  element.style.transition = `transform ${d}ms ease-out, opacity ${d}ms ease-out`;
   element.style.transform = 'translateY(30px)';
   element.style.opacity = '0';
   

@@ -15,17 +15,21 @@ export function createMusicSection(images) {
   content.className = 'relative w-full fade-in-up';
   
   const title = document.createElement('h2');
-  title.className = 'text-4xl md:text-6xl lg:text-7xl font-bold mb-12 md:mb-16 text-white text-center md:text-left fade-in-up';
+  title.className = 'text-4xl md:text-6xl lg:text-7xl font-bold mb-12 md:mb-16 text-white text-center md:text-center fade-in-up';
   title.textContent = 'Music';
   title.dataset.delay = '100';
+  
+  const galleryContainer = document.createElement('div');
+  galleryContainer.className = 'md:flex md:flex-col md:items-center';
   
   const gallery = createMusicGallery(images, {
     sizeVariant: 'large',
     enableLinks: true
   });
   
+  galleryContainer.appendChild(gallery);
   content.appendChild(title);
-  content.appendChild(gallery);
+  content.appendChild(galleryContainer);
   
   wrapper.appendChild(content);
   section.appendChild(wrapper);

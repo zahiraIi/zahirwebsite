@@ -142,13 +142,35 @@ export function initLiquidChrome(options = {}) {
 
     let animationId;
     function update(t) {
+      // Cap FPS on mobile
+      const isMobile = /Mobi|Android/i.test(navigator.userAgent);
+      const targetDelta = isMobile ? (1000 / 30) : (1000 / 60);
+      let last = update._last || 0;
+      const now = performance.now();
+      const dt = now - last;
+      if (dt < targetDelta) {
+        animationId = requestAnimationFrame(update);
+        return;
+      }
+      update._last = now;
       animationId = requestAnimationFrame(update);
-      program.uniforms.uTime.value = t * 0.001 * speed;
+      program.uniforms.uTime.value = now * 0.001 * speed;
       renderer.render({ scene: mesh });
     }
     animationId = requestAnimationFrame(update);
 
     container.appendChild(gl.canvas);
+
+    function handleVisibility() {
+      if (document.hidden) {
+        if (animationId) cancelAnimationFrame(animationId);
+        animationId = null;
+      } else if (!animationId) {
+        update._last = 0;
+        animationId = requestAnimationFrame(update);
+      }
+    }
+    document.addEventListener('visibilitychange', handleVisibility);
 
     // Cleanup function
     return () => {
@@ -164,6 +186,7 @@ export function initLiquidChrome(options = {}) {
       if (gl.getExtension('WEBGL_lose_context')) {
         gl.getExtension('WEBGL_lose_context').loseContext();
       }
+      document.removeEventListener('visibilitychange', handleVisibility);
     };
   }).catch((error) => {
     console.error('Failed to load OGL library:', error);

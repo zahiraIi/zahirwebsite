@@ -4,11 +4,13 @@
  */
 
 import { Modal } from '../utils/modal.js';
+import { createRLSimulation } from './RLSimulation.js';
 
 export function createProjectCard(project, delay = 0.2) {
   const {
     title,
     description,
+    features = [],
     previewImage,
     logoImage,
     projectUrl,
@@ -111,46 +113,95 @@ export function createProjectCard(project, delay = 0.2) {
   
   // Description
   const desc = document.createElement('p');
-  desc.className = 'text-base md:text-lg lg:text-xl leading-relaxed text-white transition-colors duration-200 mb-6 section-content-mobile-center';
+  desc.className = 'text-base md:text-lg lg:text-xl leading-relaxed text-white transition-colors duration-200 mb-4 section-content-mobile-center italic';
   desc.style.textShadow = '0 1px 2px rgba(0, 0, 0, 0.3)';
   desc.textContent = description;
   container.appendChild(desc);
   
-  // Preview Image or Iframe
+  // Preview Image, RL Simulation, or Iframe
   if (!isEmbeddable || !projectUrl) {
-    // Non-embeddable: show preview image with link
-    const previewContainer = document.createElement('div');
-    previewContainer.className = 'mt-6 rounded-2xl overflow-hidden border-2 border-white/20 shadow-2xl project-preview-image cursor-pointer';
+    // Check if this is the RL project
+    const isRLProject = title && (
+      title.includes("Reinforcement Learning") || 
+      title.includes("UCSD School") ||
+      title.includes("ML Research")
+    );
     
-    const previewLink = document.createElement('a');
-    previewLink.href = externalUrl;
-    previewLink.target = '_blank';
-    previewLink.rel = 'noopener noreferrer';
-    previewLink.className = 'block relative group/image';
-    
-    const img = document.createElement('img');
-    // Normalize path - remove /public/ prefix if present
-    const normalizedPreviewPath = previewImage.replace(/^\/public\//, '/');
-    img.src = normalizedPreviewPath;
-    img.alt = title;
-    img.className = 'w-full h-auto object-cover max-h-[600px]';
-    img.loading = 'lazy';
-    
-    const overlay = document.createElement('div');
-    overlay.className = 'absolute inset-0 bg-gradient-to-t from-black/70 via-black/0 to-black/0 opacity-0 group-hover/image:opacity-100 transition-opacity duration-300 flex items-center justify-center';
-    overlay.innerHTML = `
-      <span class="text-white text-xl font-semibold px-6 py-3 bg-black/60 backdrop-blur-md rounded-full border border-white/50 flex items-center gap-2 shadow-2xl">
-        View Project
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-        </svg>
-      </span>
-    `;
-    
-    previewLink.appendChild(img);
-    previewLink.appendChild(overlay);
-    previewContainer.appendChild(previewLink);
-    container.appendChild(previewContainer);
+    if (isRLProject) {
+      // Use RL Simulation for RL project
+      const previewContainer = document.createElement('div');
+      previewContainer.className = 'mt-6 relative';
+      
+      // Create simulation container with link wrapper
+      // Note: The entire container is clickable, but controls have pointer-events: auto
+      const simulationLink = document.createElement('a');
+      simulationLink.href = externalUrl;
+      simulationLink.target = '_blank';
+      simulationLink.rel = 'noopener noreferrer';
+      simulationLink.className = 'block relative group/image';
+      simulationLink.style.textDecoration = 'none';
+      // Prevent link from intercepting clicks on controls - handle via overlay button
+      simulationLink.addEventListener('click', (e) => {
+        // If clicking on controls or simulation, don't navigate
+        if (e.target.closest('.rl-simulation-controls') || 
+            e.target.closest('.rl-simulation-canvas-container') ||
+            e.target.closest('.rl-simulation-stats')) {
+          e.preventDefault();
+          e.stopPropagation();
+        }
+      });
+      
+      // Create simulation wrapper - NO LINK, simulation is not clickable
+      const simulationWrapper = document.createElement('div');
+      simulationWrapper.className = 'relative';
+      
+      // Create the RL simulation - will fill available space
+      createRLSimulation({
+        container: simulationWrapper
+        // height will be determined dynamically to fill container
+      });
+      
+      // Make sure simulation wrapper allows pointer events for controls
+      simulationWrapper.style.pointerEvents = 'auto';
+      
+      // No link wrapper for simulation - it's not clickable
+      previewContainer.appendChild(simulationWrapper);
+      container.appendChild(previewContainer);
+    } else {
+      // Non-embeddable: show preview image with link
+      const previewContainer = document.createElement('div');
+      previewContainer.className = 'mt-6 rounded-2xl overflow-hidden border-2 border-white/20 shadow-2xl project-preview-image cursor-pointer';
+      
+      const previewLink = document.createElement('a');
+      previewLink.href = externalUrl;
+      previewLink.target = '_blank';
+      previewLink.rel = 'noopener noreferrer';
+      previewLink.className = 'block relative group/image';
+      
+      const img = document.createElement('img');
+      // Normalize path - remove /public/ prefix if present
+      const normalizedPreviewPath = previewImage.replace(/^\/public\//, '/');
+      img.src = normalizedPreviewPath;
+      img.alt = title;
+      img.className = 'w-full h-auto object-cover max-h-[600px]';
+      img.loading = 'lazy';
+      
+      const overlay = document.createElement('div');
+      overlay.className = 'absolute inset-0 bg-gradient-to-t from-black/70 via-black/0 to-black/0 opacity-0 group-hover/image:opacity-100 transition-opacity duration-300 flex items-center justify-center';
+      overlay.innerHTML = `
+        <span class="text-white text-xl font-semibold px-6 py-3 bg-black/60 backdrop-blur-md rounded-full border border-white/50 flex items-center gap-2 shadow-2xl">
+          View Project
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+          </svg>
+        </span>
+      `;
+      
+      previewLink.appendChild(img);
+      previewLink.appendChild(overlay);
+      previewContainer.appendChild(previewLink);
+      container.appendChild(previewContainer);
+    }
   } else {
     // Embeddable: show iframe directly
     const iframeContainer = document.createElement('div');
