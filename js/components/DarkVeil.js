@@ -91,7 +91,10 @@ export function initDarkVeil(options = {}) {
     speed = 0.5,
     scanlineFrequency = 0,
     warpAmount = 0,
-    resolutionScale = 1
+    resolutionScale = 1,
+    maxDevicePixelRatio = 1.25,
+    adaptiveResolution = true,
+    pauseWhenHidden = true
   } = options;
 
   // Helper function to ensure container is ready
@@ -140,6 +143,37 @@ export function initDarkVeil(options = {}) {
       containerSize: `${container.clientWidth}x${container.clientHeight}`
     });
 
+    const originalBackground = container.style.background;
+    const originalOpacity = container.style.opacity;
+    const reducedMotionQuery = window.matchMedia ? window.matchMedia('(prefers-reduced-motion: reduce)') : null;
+    if (reducedMotionQuery && reducedMotionQuery.matches) {
+      console.info('DarkVeil: Reduced motion detected. Rendering static background.');
+      container.style.background = 'radial-gradient(circle at 50% 50%, rgba(4, 10, 24, 0.95), rgba(2, 6, 16, 1))';
+      container.style.opacity = originalOpacity || '1';
+      return () => {
+        container.style.background = originalBackground;
+        container.style.opacity = originalOpacity;
+      };
+    }
+
+    const deviceMemory = typeof navigator !== 'undefined' && 'deviceMemory' in navigator ? navigator.deviceMemory : 8;
+    const hardwareConcurrency = typeof navigator !== 'undefined' && navigator.hardwareConcurrency ? navigator.hardwareConcurrency : 8;
+
+    let performanceScale = 1;
+    if (adaptiveResolution) {
+      if ((deviceMemory && deviceMemory <= 4) || (hardwareConcurrency && hardwareConcurrency <= 4)) {
+        performanceScale = 0.85;
+      }
+      if ((deviceMemory && deviceMemory <= 2) || (hardwareConcurrency && hardwareConcurrency <= 2)) {
+        performanceScale = 0.7;
+      }
+    }
+
+    const resolutionMultiplier = Math.max(0.55, resolutionScale * performanceScale);
+    const dprScaleFactor = adaptiveResolution ? performanceScale : 1;
+    const computeEffectiveDpr = () => Math.min((window.devicePixelRatio || 1) * dprScaleFactor, maxDevicePixelRatio);
+    const effectiveSpeed = speed * (adaptiveResolution ? performanceScale : 1);
+
     // Create canvas element (equivalent to React's <canvas ref={ref} />)
     const canvas = document.createElement('canvas');
     canvas.className = 'darkveil-canvas';
@@ -154,18 +188,85 @@ export function initDarkVeil(options = {}) {
     let resizeHandler = null;
     let program = null;
     let mesh = null;
+    let observer = null;
+    let handleVisibilityChange = null;
+    let isInViewport = true;
+    let isLoopActive = true;
+    let elapsedTime = 0;
+    let lastFrameTime = 0;
+    let stopLoopFn = () => {};
 
     // Dynamically import OGL from CDN
-    import('https://cdn.jsdelivr.net/npm/ogl@1.0.11/dist/index.mjs')
+    // OGL uses src/index.js as main entry point, not dist/index.mjs
+    import('https://cdn.jsdelivr.net/npm/ogl@1.0.11/src/index.js')
       .then((OGL) => {
-        console.log('DarkVeil: OGL library loaded successfully');
+        console.log('DarkVeil: OGL library loaded successfully', OGL);
         
-        const { Renderer, Program, Mesh, Triangle, Vec2 } = OGL;
+        // OGL uses named exports, so destructure directly
+        // Handle both direct named exports and default wrapper
+        let Renderer, Program, Mesh, Triangle, Vec2;
+        
+        if (OGL.Renderer) {
+          // Direct named exports (most common for ES modules)
+          ({ Renderer, Program, Mesh, Triangle, Vec2 } = OGL);
+        } else if (OGL.default && OGL.default.Renderer) {
+          // Default export wrapper with named exports inside
+          ({ Renderer, Program, Mesh, Triangle, Vec2 } = OGL.default);
+        } else {
+          // Fallback: try to access individually
+          Renderer = OGL.Renderer || OGL.default?.Renderer;
+          Program = OGL.Program || OGL.default?.Program;
+          Mesh = OGL.Mesh || OGL.default?.Mesh;
+          Triangle = OGL.Triangle || OGL.default?.Triangle;
+          Vec2 = OGL.Vec2 || OGL.default?.Vec2;
+        }
+        
+        // Validate all required classes are available
+        if (!Renderer || !Program || !Mesh || !Triangle || !Vec2) {
+          console.error('DarkVeil: OGL classes not found', {
+            Renderer: !!Renderer,
+            Program: !!Program,
+            Mesh: !!Mesh,
+            Triangle: !!Triangle,
+            Vec2: !!Vec2,
+            OGLKeys: Object.keys(OGL),
+            OGLDefaultKeys: OGL.default ? Object.keys(OGL.default) : null
+          });
+          throw new Error('DarkVeil: Required OGL classes not available');
+        }
+        
+        console.log('DarkVeil: OGL classes extracted successfully');
+
+        // Ensure canvas is in DOM and has dimensions
+        if (!canvas.parentNode) {
+          console.warn('DarkVeil: Canvas not in DOM, appending...');
+          container.appendChild(canvas);
+        }
+        
+        const canvasWidth = canvas.clientWidth || container.clientWidth || window.innerWidth;
+        const canvasHeight = canvas.clientHeight || container.clientHeight || window.innerHeight;
+        
+        if (canvasWidth === 0 || canvasHeight === 0) {
+          console.warn('DarkVeil: Canvas has zero dimensions, waiting...', {
+            canvasWidth,
+            canvasHeight,
+            containerWidth: container.clientWidth,
+            containerHeight: container.clientHeight
+          });
+          // Retry after a short delay
+          setTimeout(() => initializeDarkVeil(container), 100);
+          return;
+        }
 
         // Create renderer with canvas (exactly as React version)
         renderer = new Renderer({
-          dpr: Math.min(window.devicePixelRatio, 2),
-          canvas
+          dpr: computeEffectiveDpr(),
+          canvas,
+          alpha: false,
+          depth: false,
+          stencil: false,
+          antialias: true,
+          preserveDrawingBuffer: false
         });
 
         const gl = renderer.gl;
@@ -184,19 +285,39 @@ export function initDarkVeil(options = {}) {
         const geometry = new Triangle(gl);
 
         // Create program with shaders
-        program = new Program(gl, {
-          vertex,
-          fragment,
-          uniforms: {
-            uTime: { value: 0 },
-            uResolution: { value: new Vec2() },
-            uHueShift: { value: hueShift },
-            uNoise: { value: noiseIntensity },
-            uScan: { value: scanlineIntensity },
-            uScanFreq: { value: scanlineFrequency },
-            uWarp: { value: warpAmount }
+        try {
+          program = new Program(gl, {
+            vertex,
+            fragment,
+            uniforms: {
+              uTime: { value: 0 },
+              uResolution: { value: new Vec2() },
+              uHueShift: { value: hueShift },
+              uNoise: { value: noiseIntensity },
+              uScan: { value: scanlineIntensity },
+              uScanFreq: { value: scanlineFrequency },
+              uWarp: { value: warpAmount }
+            }
+          });
+          console.log('DarkVeil: Shader program created successfully');
+        } catch (shaderError) {
+          console.error('DarkVeil: Shader compilation error:', shaderError);
+          // Try to get shader info log
+          const vertexShader = gl.createShader(gl.VERTEX_SHADER);
+          gl.shaderSource(vertexShader, vertex);
+          gl.compileShader(vertexShader);
+          if (!gl.getShaderParameter(vertexShader, gl.COMPILE_STATUS)) {
+            console.error('DarkVeil: Vertex shader error:', gl.getShaderInfoLog(vertexShader));
           }
-        });
+          
+          const fragmentShader = gl.createShader(gl.FRAGMENT_SHADER);
+          gl.shaderSource(fragmentShader, fragment);
+          gl.compileShader(fragmentShader);
+          if (!gl.getShaderParameter(fragmentShader, gl.COMPILE_STATUS)) {
+            console.error('DarkVeil: Fragment shader error:', gl.getShaderInfoLog(fragmentShader));
+          }
+          throw shaderError;
+        }
 
         // Create mesh
         mesh = new Mesh(gl, { geometry, program });
@@ -207,7 +328,8 @@ export function initDarkVeil(options = {}) {
           const h = container.clientHeight || window.innerHeight;
           
           if (w > 0 && h > 0) {
-            renderer.setSize(w * resolutionScale, h * resolutionScale);
+            renderer.dpr = computeEffectiveDpr();
+            renderer.setSize(w * resolutionMultiplier, h * resolutionMultiplier);
             program.uniforms.uResolution.value.set(w, h);
           }
         };
@@ -221,16 +343,25 @@ export function initDarkVeil(options = {}) {
         // Initial resize
         resize();
 
-        // Animation loop
-        const start = performance.now();
+        elapsedTime = 0;
+        lastFrameTime = performance.now();
 
-        const loop = () => {
-          if (!program || !mesh || !renderer) {
-            console.warn('DarkVeil: Components not ready, stopping loop');
+        const renderFrame = () => {
+          if (!isLoopActive) {
+            frame = null;
             return;
           }
 
-          program.uniforms.uTime.value = ((performance.now() - start) / 1000) * speed;
+          if (!program || !mesh || !renderer) {
+            frame = requestAnimationFrame(renderFrame);
+            return;
+          }
+
+          const now = performance.now();
+          elapsedTime += now - lastFrameTime;
+          lastFrameTime = now;
+
+          program.uniforms.uTime.value = (elapsedTime / 1000) * effectiveSpeed;
           program.uniforms.uHueShift.value = hueShift;
           program.uniforms.uNoise.value = noiseIntensity;
           program.uniforms.uScan.value = scanlineIntensity;
@@ -239,11 +370,56 @@ export function initDarkVeil(options = {}) {
 
           renderer.render({ scene: mesh });
 
-          frame = requestAnimationFrame(loop);
+          frame = requestAnimationFrame(renderFrame);
         };
 
-        // Start loop
-        loop();
+        const stopLoop = () => {
+          isLoopActive = false;
+          if (frame) {
+            cancelAnimationFrame(frame);
+            frame = null;
+          }
+        };
+
+        stopLoopFn = stopLoop;
+
+        const startLoop = () => {
+          if (frame) {
+            return;
+          }
+          isLoopActive = true;
+          lastFrameTime = performance.now();
+          frame = requestAnimationFrame(renderFrame);
+        };
+
+        const updateLoopVisibility = () => {
+          if (!pauseWhenHidden) {
+            return;
+          }
+          if (!document.hidden && isInViewport) {
+            startLoop();
+          } else {
+            stopLoop();
+          }
+        };
+
+        if (pauseWhenHidden) {
+          handleVisibilityChange = () => updateLoopVisibility();
+          document.addEventListener('visibilitychange', handleVisibilityChange);
+
+          observer = new IntersectionObserver(
+            (entries) => {
+              isInViewport = entries.some((entry) => entry.isIntersecting);
+              updateLoopVisibility();
+            },
+            { threshold: 0.1 }
+          );
+
+          observer.observe(container);
+        }
+
+        // Start the animation loop
+        startLoop();
 
         console.log('DarkVeil: WebGL background initialized successfully');
       })
@@ -264,10 +440,7 @@ export function initDarkVeil(options = {}) {
     // Return cleanup function (equivalent to React's useEffect cleanup)
     return () => {
       console.log('DarkVeil: Cleaning up...');
-      if (frame) {
-        cancelAnimationFrame(frame);
-        frame = null;
-      }
+      stopLoopFn();
       if (resizeHandler) {
         window.removeEventListener('resize', resizeHandler);
         resizeHandler = null;
@@ -275,9 +448,19 @@ export function initDarkVeil(options = {}) {
       if (canvas.parentNode) {
         canvas.parentNode.removeChild(canvas);
       }
+      if (observer) {
+        observer.disconnect();
+        observer = null;
+      }
+      if (handleVisibilityChange) {
+        document.removeEventListener('visibilitychange', handleVisibilityChange);
+        handleVisibilityChange = null;
+      }
       renderer = null;
       program = null;
       mesh = null;
+      container.style.background = originalBackground;
+      container.style.opacity = originalOpacity;
     };
   }
 }

@@ -19,13 +19,16 @@ function initVisualEffects() {
   requestAnimationFrame(() => {
     initDarkVeil({
       containerId: 'fractal-noise-container',
-      hueShift: 200, // Deep/shooting star blue
+      hueShift: 30, // Pure blue (shooting star blue)
       noiseIntensity: 0,
       scanlineIntensity: 0,
-      speed: 0.5,
+      speed: 0.6,
       scanlineFrequency: 0,
       warpAmount: 0,
-      resolutionScale: 1
+      resolutionScale: 0.9,
+      maxDevicePixelRatio: 1.1,
+      adaptiveResolution: true,
+      pauseWhenHidden: true
     });
   });
   

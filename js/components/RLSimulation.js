@@ -41,7 +41,7 @@ function loadP5JS() {
  * Learning Robot - Simple agent with learning behavior
  */
 class LearningRobot {
-  constructor(x, y, worldWidth, worldHeight, p5Instance, startPoint = null) {
+  constructor(x, y, worldWidth, worldHeight, p5Instance, startPoint = null, algorithm = 'DDPG') {
     this.position = p5Instance.createVector(x, y);
     this.velocity = p5Instance.createVector(0, 0);
     this.acceleration = p5Instance.createVector(0, 0);
@@ -113,6 +113,95 @@ class LearningRobot {
     this.stuckThreshold = 5; // pixels - if moved less than this in last N frames, consider stuck
     this.isStuck = false;
     this.stuckEscapeAngle = this.p.random(0, this.p.TWO_PI); // Random direction to try when stuck
+    
+    // Particle trail system (NASA/NVIDIA style visualization)
+    this.trail = []; // Array of {x, y, alpha, age}
+    this.maxTrailLength = 80; // Maximum trail points
+    this.trailDecayRate = 0.95; // Alpha decay per frame
+    
+    // Particle effects for collisions/success
+    this.particles = []; // Array of particle objects
+    this.maxParticles = 20;
+    
+    // Improved physics (momentum, smoother movement)
+    this.momentum = 0.85; // Momentum factor (0-1, higher = more momentum)
+    this.smoothAcceleration = this.p.createVector(0, 0);
+    this.accelerationSmoothing = 0.3; // Smoothing factor for acceleration
+    
+    // RL Algorithm type (DDPG, TD3, SAC, PPO)
+    this.algorithm = algorithm;
+    
+    // Algorithm-specific parameters
+    this.initAlgorithmParams();
+  }
+  
+  /**
+   * Initialize algorithm-specific parameters
+   * Based on: https://github.com/reiniscimurs/DRL-robot-navigation-IR-SIM
+   */
+  initAlgorithmParams() {
+    switch (this.algorithm) {
+      case 'DDPG':
+        // Deep Deterministic Policy Gradient: Deterministic policy with OU noise
+        this.explorationNoise = 0.3;
+        this.noiseTheta = 0.15;
+        this.noiseSigma = 0.2;
+        this.learningRate = 0.001;
+        this.policyUpdateDelay = 1; // Update every step
+        this.clipNoise = false;
+        this.entropyBonus = 0; // No entropy
+        break;
+        
+      case 'TD3':
+        // Twin Delayed DDPG: More stable, delayed updates, clipped noise
+        this.explorationNoise = 0.2; // Lower noise than DDPG
+        this.noiseTheta = 0.15;
+        this.noiseSigma = 0.15; // Lower sigma
+        this.learningRate = 0.001;
+        this.policyUpdateDelay = 2; // Delayed updates (TD3 characteristic)
+        this.clipNoise = true; // Clipped noise (TD3 characteristic)
+        this.clipRange = 0.5;
+        this.entropyBonus = 0;
+        break;
+        
+      case 'SAC':
+        // Soft Actor-Critic: High exploration with entropy bonus
+        this.explorationNoise = 0.4; // Higher exploration
+        this.noiseTheta = 0.1; // Faster mean reversion
+        this.noiseSigma = 0.3; // Higher volatility
+        this.learningRate = 0.0003;
+        this.policyUpdateDelay = 1;
+        this.clipNoise = false;
+        this.entropyBonus = 0.2; // Entropy bonus for exploration (SAC characteristic)
+        this.entropyAlpha = 0.2; // Entropy coefficient
+        break;
+        
+      case 'PPO':
+        // Proximal Policy Optimization: Conservative updates, on-policy
+        this.explorationNoise = 0.25;
+        this.noiseTheta = 0.2;
+        this.noiseSigma = 0.15;
+        this.learningRate = 0.0003;
+        this.policyUpdateDelay = 1;
+        this.clipNoise = false;
+        this.entropyBonus = 0.01; // Small entropy
+        this.clipRatio = 0.2; // PPO clipping ratio
+        this.ppoEpochs = 4; // Multiple updates per batch
+        break;
+        
+      default:
+        // Default to DDPG
+        this.explorationNoise = 0.3;
+        this.noiseTheta = 0.15;
+        this.noiseSigma = 0.2;
+        this.learningRate = 0.001;
+        this.policyUpdateDelay = 1;
+        this.clipNoise = false;
+        this.entropyBonus = 0;
+    }
+    
+    // Track policy update steps for delayed updates (TD3)
+    this.policyUpdateCounter = 0;
   }
   
   /**
@@ -276,22 +365,41 @@ class LearningRobot {
   }
   
   /**
-   * Ornstein-Uhlenbeck noise process (DDPG exploration)
+   * Ornstein-Uhlenbeck noise process (DDPG/TD3 exploration)
    * Generates smooth, temporally correlated exploration noise
+   * For SAC/PPO, uses different noise models
    */
   updateExplorationNoise() {
-    // OU process: dx = theta * (mu - x) * dt + sigma * dW
-    const mu = 0; // Mean (centered at zero)
-    const dt = 1.0; // Time step
-    
-    // Update noise (mean-reverting random walk)
-    this.policyNoise.x += this.noiseTheta * (mu - this.policyNoise.x) * dt + 
-                          this.noiseSigma * this.p.randomGaussian(0, 1);
-    this.policyNoise.y += this.noiseTheta * (mu - this.policyNoise.y) * dt + 
-                          this.noiseSigma * this.p.randomGaussian(0, 1);
-    
-    // Limit noise magnitude
-    this.policyNoise.limit(this.explorationNoise);
+    if (this.algorithm === 'SAC') {
+      // SAC: Higher variance Gaussian noise with entropy
+      this.policyNoise.x = this.p.randomGaussian(0, this.noiseSigma);
+      this.policyNoise.y = this.p.randomGaussian(0, this.noiseSigma);
+      this.policyNoise.limit(this.explorationNoise * 1.5); // More exploration
+    } else if (this.algorithm === 'PPO') {
+      // PPO: Gaussian noise with clipping
+      this.policyNoise.x = this.p.randomGaussian(0, this.noiseSigma);
+      this.policyNoise.y = this.p.randomGaussian(0, this.noiseSigma);
+      this.policyNoise.limit(this.explorationNoise);
+    } else {
+      // DDPG/TD3: Ornstein-Uhlenbeck process
+      const mu = 0; // Mean (centered at zero)
+      const dt = 1.0; // Time step
+      
+      // Update noise (mean-reverting random walk)
+      this.policyNoise.x += this.noiseTheta * (mu - this.policyNoise.x) * dt + 
+                            this.noiseSigma * this.p.randomGaussian(0, 1);
+      this.policyNoise.y += this.noiseTheta * (mu - this.policyNoise.y) * dt + 
+                            this.noiseSigma * this.p.randomGaussian(0, 1);
+      
+      // TD3: Clip noise
+      if (this.clipNoise) {
+        this.policyNoise.x = this.p.constrain(this.policyNoise.x, -this.clipRange, this.clipRange);
+        this.policyNoise.y = this.p.constrain(this.policyNoise.y, -this.clipRange, this.clipRange);
+      }
+      
+      // Limit noise magnitude
+      this.policyNoise.limit(this.explorationNoise);
+    }
   }
   
   /**
@@ -328,11 +436,31 @@ class LearningRobot {
     // Compute deterministic policy action
     const deterministicAction = this.computePolicy(state);
     
-    // Update exploration noise (Ornstein-Uhlenbeck process)
+    // Algorithm-specific policy updates (TD3 has delayed updates)
+    this.policyUpdateCounter++;
+    const shouldUpdatePolicy = (this.policyUpdateCounter % this.policyUpdateDelay === 0);
+    
+    // Update exploration noise (algorithm-specific)
     this.updateExplorationNoise();
     
-    // Add exploration noise to deterministic action (DDPG style)
-    const explorationScale = this.explorationNoise * (1.0 - this.learningProgress); // Decrease noise as learning progresses
+    // Add exploration noise to deterministic action (algorithm-specific scaling)
+    let explorationScale = this.explorationNoise * (1.0 - this.learningProgress);
+    
+    // SAC: Higher exploration, entropy bonus
+    if (this.algorithm === 'SAC') {
+      explorationScale *= (1.0 + this.entropyBonus); // Boost exploration
+    }
+    
+    // PPO: Conservative exploration, decreases faster
+    if (this.algorithm === 'PPO') {
+      explorationScale *= 0.8; // More conservative
+    }
+    
+    // TD3: Only add noise if policy should update (delayed)
+    if (this.algorithm === 'TD3' && !shouldUpdatePolicy) {
+      explorationScale *= 0.3; // Reduced noise on non-update steps
+    }
+    
     const noisyAction = this.p.createVector(
       deterministicAction.x + this.policyNoise.x * explorationScale,
       deterministicAction.y + this.policyNoise.y * explorationScale
@@ -363,16 +491,19 @@ class LearningRobot {
       target.x, target.y
     );
     
-    if (distance < 15) {
-      // Reached goal! Stop at target
-      if (!this.reachedGoal) {
-        this.reachedGoal = true;
-        this.successCount++;
-        this.episodeCount++;
-        this.timeAtGoal = 0;
-        
-        // Record episode metrics for learning
-        const episodeTime = this.stepsSinceStart;
+      if (distance < 15) {
+        // Reached goal! Stop at target
+        if (!this.reachedGoal) {
+          this.reachedGoal = true;
+          this.successCount++;
+          this.episodeCount++;
+          this.timeAtGoal = 0;
+          
+          // Create success particle effect (green/cyan) - NASA/NVIDIA style
+          this.createParticleEffect(this.position.x, this.position.y, [100, 255, 200], 12);
+          
+          // Record episode metrics for learning
+          const episodeTime = this.stepsSinceStart;
         const episodeCollisions = this.collisionCount;
         
         // Store episode data
@@ -706,16 +837,18 @@ class LearningRobot {
     // Store goal for obstacle avoidance calculations
     this.currentGoal = goal;
     
-    // Check for collision BEFORE moving (for all robots, regardless of learned weight)
-    const hasCollision = this.checkCollision(obstacles);
-    
-    // If collision detected, don't move - will be reset in next frame
-    if (hasCollision) {
-      // Stop movement immediately
-      this.velocity.mult(0);
-      this.acceleration.mult(0);
-      return; // Exit early, don't update position
-    }
+      // Check for collision BEFORE moving (for all robots, regardless of learned weight)
+      const hasCollision = this.checkCollision(obstacles);
+      
+      // If collision detected, don't move - will be reset in next frame
+      if (hasCollision) {
+        // Create collision particle effect (red/orange)
+        this.createParticleEffect(this.position.x, this.position.y, [255, 100, 50], 8);
+        // Stop movement immediately
+        this.velocity.mult(0);
+        this.acceleration.mult(0);
+        return; // Exit early, don't update position
+      }
     
     // Check if stuck
     this.checkIfStuck();
@@ -796,9 +929,19 @@ class LearningRobot {
       this.acceleration.add(escapeForce);
     }
     
-    // Update physics
-    this.velocity.add(this.acceleration);
+    // Update physics with momentum and smoothing (modern quartr.com style - smooth, fluid)
+    // Smooth acceleration changes for more fluid movement (easing function)
+    const smoothing = this.accelerationSmoothing;
+    this.smoothAcceleration.lerp(this.acceleration, smoothing);
+    
+    // Apply momentum to velocity (more realistic physics - robots have inertia)
+    // Use smooth easing for velocity (quartr.com style)
+    this.velocity.mult(this.momentum);
+    this.velocity.add(this.smoothAcceleration);
     this.velocity.limit(this.maxSpeed);
+    
+    // Smooth position updates for fluid animation (quartr.com style)
+    // This creates the smooth, modern animation feel
     
     // Minimum velocity to prevent getting completely stuck
     if (this.velocity.mag() < 0.1 && !this.reachedGoal) {
@@ -814,6 +957,9 @@ class LearningRobot {
     
     this.velocity.limit(this.maxSpeed);
     this.position.add(this.velocity);
+    
+    // Update particle trail (NASA/NVIDIA style path visualization)
+    this.updateTrail();
     
     // Update rotation (spinning animation)
     this.rotationAngle += this.rotationSpeed;
@@ -904,13 +1050,25 @@ class LearningRobot {
     this.hitObstacle = false;
     this.timeAtGoal = 0;
     this.stepsSinceStart = 0;
-    this.positionHistory = [];
-    this.isStuck = false;
-    this.stuckEscapeAngle = this.p.random(0, this.p.TWO_PI);
-    this.hasNewKnowledge = false;
-    
-    // Reset DDPG exploration noise
-    this.policyNoise.mult(0);
+      this.positionHistory = [];
+      this.isStuck = false;
+      this.stuckEscapeAngle = this.p.random(0, this.p.TWO_PI);
+      this.hasNewKnowledge = false;
+      
+      // Clear trail on reset (keep some history for smooth transition)
+      if (reason === 'obstacle') {
+        // Keep some trail history when resetting due to collision
+        this.trail = this.trail.slice(-20); // Keep last 20 points
+      } else {
+        // Clear trail completely on goal reset
+        this.trail = [];
+      }
+      
+      // Clear particles
+      this.particles = [];
+      
+      // Reset DDPG exploration noise
+      this.policyNoise.mult(0);
     
     // Keep path knowledge but reduce confidence slightly
     if (this.hasPathKnowledge) {
@@ -939,6 +1097,137 @@ class LearningRobot {
   }
   
   /**
+   * Update particle trail (NASA/NVIDIA style path visualization)
+   */
+  updateTrail() {
+    // Add current position to trail
+    this.trail.push({
+      x: this.position.x,
+      y: this.position.y,
+      alpha: 255,
+      age: 0
+    });
+    
+    // Limit trail length
+    if (this.trail.length > this.maxTrailLength) {
+      this.trail.shift();
+    }
+    
+    // Update trail particles (fade and age)
+    for (let i = this.trail.length - 1; i >= 0; i--) {
+      this.trail[i].alpha *= this.trailDecayRate;
+      this.trail[i].age++;
+      
+      // Remove very faded particles
+      if (this.trail[i].alpha < 5) {
+        this.trail.splice(i, 1);
+      }
+    }
+  }
+  
+  /**
+   * Create particle effect (for collisions, success, etc.)
+   */
+  createParticleEffect(x, y, color, count = 5) {
+    for (let i = 0; i < count && this.particles.length < this.maxParticles; i++) {
+      this.particles.push({
+        x: x + this.p.random(-5, 5),
+        y: y + this.p.random(-5, 5),
+        vx: this.p.random(-2, 2),
+        vy: this.p.random(-2, 2),
+        life: 1.0,
+        decay: this.p.random(0.02, 0.05),
+        size: this.p.random(2, 4),
+        color: color
+      });
+    }
+  }
+  
+  /**
+   * Update particle effects
+   */
+  updateParticles() {
+    for (let i = this.particles.length - 1; i >= 0; i--) {
+      const p = this.particles[i];
+      p.x += p.vx;
+      p.y += p.vy;
+      p.life -= p.decay;
+      p.vx *= 0.95; // Friction
+      p.vy *= 0.95;
+      
+      if (p.life <= 0) {
+        this.particles.splice(i, 1);
+      }
+    }
+  }
+  
+  /**
+   * Draw particle trail (modern quartr.com style - smooth, fluid)
+   */
+  drawTrail() {
+    if (this.trail.length < 2) return;
+    
+    this.p.push();
+    this.p.noFill();
+    
+    // Algorithm-specific colors
+    let algorithmColor = { r: 100, g: 200, b: 255 }; // Default blue
+    switch (this.algorithm) {
+      case 'DDPG':
+        algorithmColor = { r: 100, g: 200, b: 255 }; // Cyan-blue
+        break;
+      case 'TD3':
+        algorithmColor = { r: 150, g: 100, b: 255 }; // Purple
+        break;
+      case 'SAC':
+        algorithmColor = { r: 100, g: 255, b: 150 }; // Green-cyan
+        break;
+      case 'PPO':
+        algorithmColor = { r: 255, g: 150, b: 100 }; // Orange
+        break;
+    }
+    
+    // Draw trail as connected line segments with smooth gradient (quartr.com style)
+    for (let i = 1; i < this.trail.length; i++) {
+      const prev = this.trail[i - 1];
+      const curr = this.trail[i];
+      
+      // Smooth color interpolation based on trail position (modern animation)
+      const trailProgress = i / this.trail.length;
+      const brightness = this.p.map(trailProgress, 0, 1, 0.5, 1.0); // Fade from dim to bright
+      
+      // Algorithm color with learning progress and trail position
+      const r = algorithmColor.r * brightness * (0.7 + this.learningProgress * 0.3);
+      const g = algorithmColor.g * brightness * (0.7 + this.learningProgress * 0.3);
+      const b = algorithmColor.b * brightness * (0.7 + this.learningProgress * 0.3);
+      
+      // Alpha based on trail age and learning progress (smooth fade)
+      const alpha = prev.alpha * (0.2 + this.learningProgress * 0.5);
+      
+      this.p.stroke(r, g, b, alpha);
+      // Smooth stroke weight (quartr.com style - fluid lines)
+      this.p.strokeWeight(1.5 + this.learningProgress * 2);
+      this.p.line(prev.x, prev.y, curr.x, curr.y);
+    }
+    
+    this.p.pop();
+  }
+  
+  /**
+   * Draw particle effects
+   */
+  drawParticles() {
+    this.p.push();
+    for (let particle of this.particles) {
+      const [r, g, b] = particle.color;
+      this.p.fill(r, g, b, particle.life * 255);
+      this.p.noStroke();
+      this.p.ellipse(particle.x, particle.y, particle.size, particle.size);
+    }
+    this.p.pop();
+  }
+  
+  /**
    * Draw spinning robot
    */
   show() {
@@ -949,7 +1238,24 @@ class LearningRobot {
     // Robot body (circle with pattern showing rotation)
     const size = 14;
     
-    // Outer glow - different color when stuck (orange/red) vs normal (blue with learning indicator)
+    // Algorithm-specific colors (modern quartr.com style)
+    let algorithmColor = { r: 100, g: 200, b: 255 }; // Default blue
+    switch (this.algorithm) {
+      case 'DDPG':
+        algorithmColor = { r: 100, g: 200, b: 255 }; // Cyan-blue
+        break;
+      case 'TD3':
+        algorithmColor = { r: 150, g: 100, b: 255 }; // Purple
+        break;
+      case 'SAC':
+        algorithmColor = { r: 100, g: 255, b: 150 }; // Green-cyan
+        break;
+      case 'PPO':
+        algorithmColor = { r: 255, g: 150, b: 100 }; // Orange
+        break;
+    }
+    
+    // Outer glow - different color when stuck (orange/red) vs normal (algorithm color with learning indicator)
     if (this.isStuck) {
       // Stuck indicator - pulsing orange/red
       const pulse = this.p.sin(this.p.millis() * 0.01) * 0.3 + 0.7;
@@ -961,16 +1267,20 @@ class LearningRobot {
       this.p.fill(255, 150, 50, 220);
       this.p.ellipse(0, 0, size, size);
     } else {
-      // Outer glow - brightness based on learning progress (0.0 to 1.0)
+      // Outer glow - brightness based on learning progress (0.0 to 1.0) with algorithm color
       const learningGlow = this.p.map(this.learningProgress, 0, 1, 100, 255);
-      this.p.fill(100, 200, 255, learningGlow * 0.3);
+      this.p.fill(algorithmColor.r, algorithmColor.g, algorithmColor.b, learningGlow * 0.3);
       this.p.noStroke();
       this.p.ellipse(0, 0, size + 6, size + 6);
       
-      // Main body - color shifts slightly as learning progresses (blue -> cyan)
-      const r = this.p.map(this.learningProgress, 0, 1, 100, 150);
-      const g = this.p.map(this.learningProgress, 0, 1, 200, 255);
-      this.p.fill(r, g, 255, 220);
+      // Main body - algorithm color with learning progress brightness
+      const brightness = this.p.map(this.learningProgress, 0, 1, 0.7, 1.0);
+      this.p.fill(
+        algorithmColor.r * brightness,
+        algorithmColor.g * brightness,
+        algorithmColor.b * brightness,
+        220
+      );
       this.p.ellipse(0, 0, size, size);
     }
     
@@ -985,6 +1295,9 @@ class LearningRobot {
     this.p.ellipse(0, 0, 4, 4);
     
     this.p.pop();
+    
+    // Draw particle effects
+    this.drawParticles();
   }
 }
 
@@ -992,13 +1305,14 @@ class LearningRobot {
  * Swarm Environment
  */
 class SwarmEnvironment {
-  constructor(width, height, numAgents, p5Instance) {
+  constructor(width, height, numAgents, p5Instance, algorithm = 'DDPG') {
     this.width = width;
     this.height = height;
     this.p = p5Instance;
     this.robots = [];
     this.obstacles = [];
     this.obstacleIdCounter = 0; // Unique ID counter for obstacles
+    this.algorithm = algorithm; // Current algorithm
     
     // Start and target positions - use minimal padding to maximize space
     const padding = 20; // Small padding to keep markers visible
@@ -1010,7 +1324,7 @@ class SwarmEnvironment {
     for (let i = 0; i < clamped; i++) {
       const x = this.startPoint.x + this.p.random(-10, 10);
       const y = this.startPoint.y + this.p.random(-10, 10);
-      this.robots.push(new LearningRobot(x, y, width, height, p5Instance, this.startPoint));
+      this.robots.push(new LearningRobot(x, y, width, height, p5Instance, this.startPoint, algorithm));
     }
     
     // Preset obstacles
@@ -1106,7 +1420,16 @@ class SwarmEnvironment {
   
   getMetrics() {
     if (this.robots.length === 0) {
-      return { totalSuccess: 0, swarmCohesion: 0, averageSpeed: 0, totalCollisions: 0, avgLearningProgress: 0, totalEpisodes: 0 };
+      return { 
+        totalSuccess: 0, 
+        swarmCohesion: 0, 
+        averageSpeed: 0, 
+        totalCollisions: 0, 
+        avgLearningProgress: 0, 
+        totalEpisodes: 0,
+        avgAvoidanceRate: 0,
+        efficiency: 0
+      };
     }
     
     const totalSuccess = this.robots.reduce((sum, r) => sum + (r.successCount || 0), 0);
@@ -1114,6 +1437,11 @@ class SwarmEnvironment {
     const totalEpisodes = this.robots.reduce((sum, r) => sum + (r.episodeCount || 0), 0);
     const avgLearningProgress = this.robots.length > 0 
       ? this.robots.reduce((sum, r) => sum + (r.learningProgress || 0), 0) / this.robots.length 
+      : 0;
+    
+    // Calculate average avoidance success rate (NASA/NVIDIA style metric)
+    const avgAvoidanceRate = this.robots.length > 0
+      ? this.robots.reduce((sum, r) => sum + (r.avoidanceSuccessRate || 0), 0) / this.robots.length
       : 0;
     
     // Calculate average speed (from swarm_engine.py _calculate_metrics)
@@ -1130,7 +1458,19 @@ class SwarmEnvironment {
     const avgDistance = distances.reduce((sum, dist) => sum + dist, 0) / distances.length;
     const swarmCohesion = 1.0 / (1.0 + avgDistance);
     
-    return { totalSuccess, swarmCohesion, averageSpeed, totalCollisions, avgLearningProgress, totalEpisodes };
+    // Calculate efficiency metric (success rate normalized by episodes)
+    const efficiency = totalEpisodes > 0 ? (totalSuccess / totalEpisodes) * 100 : 0;
+    
+    return { 
+      totalSuccess, 
+      swarmCohesion, 
+      averageSpeed, 
+      totalCollisions, 
+      avgLearningProgress, 
+      totalEpisodes,
+      avgAvoidanceRate,
+      efficiency
+    };
   }
   
   setNumRobots(count) {
@@ -1142,11 +1482,22 @@ class SwarmEnvironment {
       for (let i = 0; i < clamped - currentCount; i++) {
         const x = this.startPoint.x + this.p.random(-10, 10);
         const y = this.startPoint.y + this.p.random(-10, 10);
-        this.robots.push(new LearningRobot(x, y, this.width, this.height, this.p, this.startPoint));
+        this.robots.push(new LearningRobot(x, y, this.width, this.height, this.p, this.startPoint, this.algorithm));
       }
     } else if (clamped < currentCount) {
       // Remove robots
       this.robots = this.robots.slice(0, clamped);
+    }
+  }
+  
+  /**
+   * Change algorithm for all robots
+   */
+  setAlgorithm(algorithm) {
+    this.algorithm = algorithm;
+    for (let robot of this.robots) {
+      robot.algorithm = algorithm;
+      robot.initAlgorithmParams();
     }
   }
   
@@ -1212,6 +1563,25 @@ export function createRLSimulation(options = {}) {
   title.textContent = 'SWARM CONTROL';
   controlsDiv.appendChild(title);
   
+  // Algorithm selector
+  const algorithmDiv = document.createElement('div');
+  algorithmDiv.className = 'rl-slider-container';
+  const algorithmLabel = document.createElement('label');
+  algorithmLabel.textContent = 'Algorithm: ';
+  algorithmLabel.className = 'rl-slider-label';
+  const algorithmSelect = document.createElement('select');
+  algorithmSelect.className = 'rl-algorithm-select';
+  algorithmSelect.innerHTML = `
+    <option value="DDPG">DDPG (Deep Deterministic Policy Gradient)</option>
+    <option value="TD3">TD3 (Twin Delayed DDPG)</option>
+    <option value="SAC">SAC (Soft Actor-Critic)</option>
+    <option value="PPO">PPO (Proximal Policy Optimization)</option>
+  `;
+  algorithmSelect.value = 'DDPG';
+  algorithmLabel.appendChild(algorithmSelect);
+  algorithmDiv.appendChild(algorithmLabel);
+  controlsDiv.appendChild(algorithmDiv);
+  
   // Bot count slider
   const botCountDiv = document.createElement('div');
   botCountDiv.className = 'rl-slider-container';
@@ -1272,6 +1642,7 @@ export function createRLSimulation(options = {}) {
   const statsDisplay = document.createElement('div');
   statsDisplay.className = 'rl-stats-display';
   statsDisplay.innerHTML = `
+    <div class="rl-stat-item"><span class="rl-stat-label">Algorithm:</span> <span class="rl-stat-value" id="stat-algorithm">DDPG</span></div>
     <div class="rl-stat-item"><span class="rl-stat-label">Episodes:</span> <span class="rl-stat-value" id="stat-episodes">0</span></div>
     <div class="rl-stat-item"><span class="rl-stat-label">Successes:</span> <span class="rl-stat-value" id="stat-successes">0</span></div>
     <div class="rl-stat-item"><span class="rl-stat-label">Learning:</span> <span class="rl-stat-value" id="stat-learning">0%</span></div>
@@ -1320,7 +1691,8 @@ export function createRLSimulation(options = {}) {
       playPauseBtn,
       resetBtn,
       moveObstaclesBtn,
-      botCountSlider
+      botCountSlider,
+      algorithmSelect
     }, syncCanvasHeight);
     p5Instance = instance;
     
@@ -1349,6 +1721,7 @@ function initP5Sketch(container, statsDisplay, controls, syncHeightCallback) {
     let paused = true; // Start paused - user must press play
     let editMode = false; // Edit mode for moving obstacles
     let draggingObstacleIndex = -1;
+    let currentAlgorithm = controls.algorithmSelect ? controls.algorithmSelect.value : 'DDPG';
     
     const colors = {
       background: [21, 26, 54], // Van Gogh Starry Night deep navy blue
@@ -1379,7 +1752,7 @@ function initP5Sketch(container, statsDisplay, controls, syncHeightCallback) {
       canvas.style.position = 'relative';
       canvas.style.zIndex = '1';
       
-      swarm = new SwarmEnvironment(canvasWidth, canvasHeight, 3, p);
+      swarm = new SwarmEnvironment(canvasWidth, canvasHeight, 3, p, currentAlgorithm);
       updateStats();
       
       // Sync height after setup
@@ -1395,7 +1768,7 @@ function initP5Sketch(container, statsDisplay, controls, syncHeightCallback) {
         p.resizeCanvas(canvasWidth, canvasHeight);
         
         const numRobots = swarm ? swarm.robots.length : 3;
-        swarm = new SwarmEnvironment(canvasWidth, canvasHeight, numRobots, p);
+        swarm = new SwarmEnvironment(canvasWidth, canvasHeight, numRobots, p, currentAlgorithm);
       }
       
       // Resync height on window resize
@@ -1421,29 +1794,48 @@ function initP5Sketch(container, statsDisplay, controls, syncHeightCallback) {
     
     function drawObstacles() {
       for (let obs of swarm.obstacles) {
-        // In edit mode, show pulsing glow to indicate draggable
+        // Enhanced visualization with gradient rings (NASA/NVIDIA style)
+        p.push();
+        
+        // Outer glow ring (larger, more visible)
         if (editMode) {
           const pulse = p.sin(p.millis() * 0.005) * 0.3 + 0.7;
           p.fill(colors.obstacleGlow[0], colors.obstacleGlow[1], colors.obstacleGlow[2], pulse * 150);
           p.noStroke();
-          p.ellipse(obs.x, obs.y, obs.radius * 2 + 15, obs.radius * 2 + 15);
+          p.ellipse(obs.x, obs.y, obs.radius * 2 + 20, obs.radius * 2 + 20);
         } else {
-          // Normal glow
-          p.fill(colors.obstacleGlow[0], colors.obstacleGlow[1], colors.obstacleGlow[2], 100);
+          // Normal glow with subtle pulsing
+          const subtlePulse = p.sin(p.millis() * 0.003) * 0.1 + 0.9;
+          p.fill(colors.obstacleGlow[0], colors.obstacleGlow[1], colors.obstacleGlow[2], 100 * subtlePulse);
           p.noStroke();
-          p.ellipse(obs.x, obs.y, obs.radius * 2 + 10, obs.radius * 2 + 10);
+          p.ellipse(obs.x, obs.y, obs.radius * 2 + 12, obs.radius * 2 + 12);
         }
         
-        // Main obstacle
-        p.fill(colors.obstacle[0], colors.obstacle[1], colors.obstacle[2]);
-        p.ellipse(obs.x, obs.y, obs.radius * 2, obs.radius * 2);
+        // Middle glow ring
+        p.fill(colors.obstacleGlow[0], colors.obstacleGlow[1], colors.obstacleGlow[2], 60);
+        p.ellipse(obs.x, obs.y, obs.radius * 2 + 6, obs.radius * 2 + 6);
+        
+        // Main obstacle with gradient effect
+        // Create radial gradient effect using multiple circles
+        for (let i = 3; i >= 0; i--) {
+          const alpha = 200 - (i * 30);
+          const size = obs.radius * 2 - (i * 2);
+          p.fill(colors.obstacle[0], colors.obstacle[1], colors.obstacle[2], alpha);
+          p.ellipse(obs.x, obs.y, size, size);
+        }
+        
+        // Highlight on top
+        p.fill(255, 255, 255, 40);
+        p.ellipse(obs.x - obs.radius * 0.3, obs.y - obs.radius * 0.3, obs.radius * 0.8, obs.radius * 0.8);
         
         // Outline - thicker in edit mode
         p.stroke(colors.obstacleGlow[0], colors.obstacleGlow[1], colors.obstacleGlow[2]);
-        p.strokeWeight(editMode ? 2 : 1);
+        p.strokeWeight(editMode ? 2.5 : 1.5);
         p.noFill();
         p.ellipse(obs.x, obs.y, obs.radius * 2, obs.radius * 2);
         p.noStroke();
+        
+        p.pop();
       }
     }
     
@@ -1479,6 +1871,37 @@ function initP5Sketch(container, statsDisplay, controls, syncHeightCallback) {
     }
     
     function drawRobots() {
+      // Draw connection lines between robots (swarm cohesion visualization)
+      if (swarm.robots.length > 1) {
+        p.push();
+        p.stroke(100, 200, 255, 80);
+        p.strokeWeight(1);
+        p.noFill();
+        
+        for (let i = 0; i < swarm.robots.length; i++) {
+          for (let j = i + 1; j < swarm.robots.length; j++) {
+            const r1 = swarm.robots[i];
+            const r2 = swarm.robots[j];
+            const dist = p.dist(r1.position.x, r1.position.y, r2.position.x, r2.position.y);
+            
+            // Draw line if robots are within neighbor radius (showing swarm cohesion)
+            if (dist < r1.neighborRadius) {
+              // Alpha based on distance (closer = more visible)
+              const alpha = p.map(dist, 0, r1.neighborRadius, 120, 30);
+              p.stroke(100, 200, 255, alpha);
+              p.line(r1.position.x, r1.position.y, r2.position.x, r2.position.y);
+            }
+          }
+        }
+        p.pop();
+      }
+      
+      // Draw trails first (behind robots)
+      for (let robot of swarm.robots) {
+        robot.drawTrail();
+      }
+      
+      // Draw robots on top
       for (let robot of swarm.robots) {
         robot.show();
       }
@@ -1488,6 +1911,12 @@ function initP5Sketch(container, statsDisplay, controls, syncHeightCallback) {
       if (!swarm) return;
       
       const metrics = swarm.getMetrics();
+      
+      // Update algorithm display
+      const algorithmEl = document.getElementById('stat-algorithm');
+      if (algorithmEl) {
+        algorithmEl.textContent = currentAlgorithm;
+      }
       
       // Update stats with safety checks
       const episodesEl = document.getElementById('stat-episodes');
@@ -1615,6 +2044,24 @@ function initP5Sketch(container, statsDisplay, controls, syncHeightCallback) {
       swarm.setNumRobots(count);
       updateStats();
     });
+    
+    // Algorithm selector event handler
+    if (controls.algorithmSelect) {
+      controls.algorithmSelect.addEventListener('change', () => {
+        currentAlgorithm = controls.algorithmSelect.value;
+        if (swarm) {
+          swarm.setAlgorithm(currentAlgorithm);
+          // Update algorithm display
+          const algorithmEl = document.getElementById('stat-algorithm');
+          if (algorithmEl) {
+            algorithmEl.textContent = currentAlgorithm;
+          }
+          // Reset to show algorithm differences immediately
+          swarm.resetAll();
+          updateStats();
+        }
+      });
+    }
     
     return {
       pause: () => {
