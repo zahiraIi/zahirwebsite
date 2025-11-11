@@ -65,39 +65,6 @@
     <!-- Preload main JavaScript module -->
     <link rel="modulepreload" href="/js/main.js">
     
-    <!-- Critical CSS for instant rendering (prevents FOUC) -->
-    <style>
-      /* Screen reader only - SEO content hidden immediately */
-      .sr-only {
-        position: absolute !important;
-        width: 1px !important;
-        height: 1px !important;
-        padding: 0 !important;
-        margin: -1px !important;
-        overflow: hidden !important;
-        clip: rect(0, 0, 0, 0) !important;
-        white-space: nowrap !important;
-        border-width: 0 !important;
-        display: block !important;
-      }
-      
-      /* CSS Fallback Background (loads instantly) */
-      #fractal-noise-container {
-        position: absolute;
-        inset: 0;
-        background: linear-gradient(135deg, #1a1f3d 0%, #2a3f5f 25%, #3a5f7f 50%, #4a6f8f 75%, #5a7f9f 100%);
-        background-size: 400% 400%;
-        animation: gradientShift 20s ease infinite;
-        z-index: 0;
-      }
-      
-      @keyframes gradientShift {
-        0% { background-position: 0% 50%; }
-        50% { background-position: 100% 50%; }
-        100% { background-position: 0% 50%; }
-      }
-    </style>
-    
     <!-- Load fonts -->
     <link rel="stylesheet" href="https://use.typekit.net/huu2lim.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&display=swap" rel="stylesheet">
