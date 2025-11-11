@@ -181,49 +181,54 @@
         id="main-content"
       >
           <div class="max-w-6xl w-full">
-            <!-- Header Section with Name and Photo -->
-            <header class="mb-16 md:mb-20 flex flex-col md:flex-row items-center md:items-center justify-between gap-8">
-              <!-- Name and Subtitle -->
-              <div class="flex-1 text-center md:text-left fade-in-up" data-delay="200">
-                <h1 class="text-6xl md:text-7xl lg:text-8xl font-bold mb-4 leading-tight tracking-tight">
-                  <span id="decrypted-name" class="text-white" itemscope itemtype="https://schema.org/Person">
+            <!-- Hero Section -->
+            <header class="mb-16 md:mb-20 flex flex-col items-center text-center gap-6">
+              <div class="fade-in-up" data-delay="200">
+                <div 
+                  class="w-40 h-40 md:w-56 md:h-56 lg:w-64 lg:h-64 rounded-full overflow-hidden border-2 border-white/20 shadow-2xl profile-photo mx-auto"
+                >
+                  <img 
+                    src="/attached_assets/zahir.webp" 
+                    alt="Zahir Ali" 
+                    class="w-full h-full object-cover"
+                    fetchpriority="high"
+                    decoding="async"
+                  />
+                </div>
+              </div>
+              <div class="fade-in-up" data-delay="300">
+                <h1 class="text-5xl md:text-7xl lg:text-8xl font-bold leading-tight tracking-tight text-white mb-4">
+                  <span id="decrypted-name" itemscope itemtype="https://schema.org/Person">
                     <span itemprop="name">Zahir Ali</span>
                   </span>
                 </h1>
-                <p class="text-xl md:text-4xl font-light text-white mb-2 fade-in-up" data-delay="600" itemprop="jobTitle">
-                  machine learning & software engineer
-                </p>
-              <p class="text-xl md:text-4xl font-light text-white mb-2 fade-in-up" data-delay="800">
-                embedded swe @
-                <a 
-                  href="https://atmosenseinc.com/" 
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  class="text-xl md:text-4xl font-light hover-link-preview text-white"
-                  data-preview-image="/attached_assets/atmosense.png"
-                  data-preview-alt="AtmoSense - Revolutionizing gas sensing technology"
-                >
-                  AtmoSense
-                </a>
-              </p>
-            </div>
-
-            <!-- Profile Photo and Social Links -->
-            <div class="flex flex-col items-center gap-6 fade-in-up" data-delay="400">
-              <div 
-                class="w-56 h-56 md:w-64 md:h-64 rounded-full overflow-hidden border-2 border-white/20 shadow-2xl profile-photo"
-              >
-                <img 
-                  src="/attached_assets/zahir.webp" 
-                  alt="Zahir Ali" 
-                  class="w-full h-full object-cover"
-                  fetchpriority="high"
-                  decoding="async"
-                />
+                <div class="space-y-2 text-white">
+                  <p class="text-lg md:text-3xl font-light" itemprop="jobTitle">
+                    Machine Learning &amp; Software Engineer
+                  </p>
+                  <p class="text-lg md:text-3xl font-light">
+                    Embedded SWE @
+                    <a 
+                      href="https://atmosenseinc.com/" 
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      class="hover-link-preview text-white underline decoration-white/40 hover:decoration-white"
+                      data-preview-image="/attached_assets/atmosense.png"
+                      data-preview-alt="AtmoSense - Revolutionizing gas sensing technology"
+                    >
+                      AtmoSense
+                    </a>
+                  </p>
+                </div>
               </div>
-
+              <div class="fade-in-up" data-delay="400">
+                <p class="max-w-3xl mx-auto text-white/90 text-base md:text-xl font-light leading-relaxed">
+                  Sophomore at UC San Diego majoring in Cognitive Science with a specialization in Machine Learning and Neural Computation.
+                  Building autonomous systems, NLP projects, and intelligent tools that bridge research and production.
+                </p>
+              </div>
               <!-- Social Icons -->
-              <div class="flex gap-8 justify-center md:justify-start fade-in-up" data-delay="1000">
+              <div class="flex gap-8 justify-center fade-in-up" data-delay="500">
                 <a
                   href="mailto:z5ali@ucsd.edu"
                   target="_blank"
