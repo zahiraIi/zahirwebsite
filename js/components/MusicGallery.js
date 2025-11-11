@@ -63,6 +63,8 @@ export function createMusicGallery(images, options = {}) {
     `;
 
     const img = document.createElement('img');
+    img.loading = 'lazy';
+    img.decoding = 'async';
     img.style.cssText = `
       max-width: 100%;
       max-height: 100%;

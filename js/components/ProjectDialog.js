@@ -36,6 +36,8 @@ export function createProjectCard(project, delay = 0.2) {
     // Normalize path - remove /public/ prefix if present
     const normalizedPath = logoImage.replace(/^\/public\//, '/');
     logo.src = normalizedPath;
+    logo.loading = 'lazy';
+    logo.decoding = 'async';
     logo.alt = `${title} logo`;
     
     // Logo sizing: 3x larger than text height for better visibility
@@ -182,9 +184,10 @@ export function createProjectCard(project, delay = 0.2) {
       // Normalize path - remove /public/ prefix if present
       const normalizedPreviewPath = previewImage.replace(/^\/public\//, '/');
       img.src = normalizedPreviewPath;
+      img.loading = 'lazy';
+      img.decoding = 'async';
       img.alt = title;
       img.className = 'w-full h-auto object-cover max-h-[600px]';
-      img.loading = 'lazy';
       
       const overlay = document.createElement('div');
       overlay.className = 'absolute inset-0 bg-gradient-to-t from-black/70 via-black/0 to-black/0 opacity-0 group-hover/image:opacity-100 transition-opacity duration-300 flex items-center justify-center';
