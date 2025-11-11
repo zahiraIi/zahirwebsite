@@ -56,8 +56,8 @@ export function initFractalNoiseShader(options = {}) {
         uniform vec2 u_resolution;
         uniform float u_time;
         
-        // Ultra-optimized: reduced from 6 to 2 octaves for maximum performance
-        const int octaves = 2;
+        // Optimized: reduced from 6 to 3 octaves for balanced performance and quality
+        const int octaves = 3;
         const float seed = 43758.5453123;
         const float seed2 = 73156.8473192;
         
@@ -91,7 +91,7 @@ export function initFractalNoiseShader(options = {}) {
           return v;
         }
         
-        // Optimized pattern: 4 fbm calls instead of 9 (55% less computation, maintains visual quality)
+        // Optimized pattern: 5 fbm calls instead of 9 (44% less computation, maintains visual quality)
         float pattern(vec2 uv, float seed, float time, inout vec2 q, inout vec2 r) {
           // First layer - generates q values for color variation
           q = vec2(fbm1(uv + vec2(0.0, 0.0), seed),
@@ -101,8 +101,10 @@ export function initFractalNoiseShader(options = {}) {
           r = vec2(fbm1(uv + 3.0 * q + vec2(1.7 - time / 2.0, 9.2), seed),
                     fbm1(uv + 3.0 * q + vec2(8.3 - time / 2.0, 2.8), seed));
           
-          // Final pattern combines everything (simpler than original 5-layer chain)
-          return clamp(fbm1(uv + 2.0 * r, seed) * 0.5, 0.0, 0.5);
+          // Final pattern combines everything (must use 3.0 * r and NO extra multiply for correct color range)
+          float rtn = fbm1(uv + 3.0 * r, seed);
+          rtn = clamp(rtn, 0.0, 0.5);
+          return rtn;
         }
         
         vec3 hsv2rgb(vec3 c) {
