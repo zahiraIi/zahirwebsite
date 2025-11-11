@@ -502,19 +502,17 @@ img, video, iframe {
   overflow: hidden;
 }
 
-#fractal-noise-container canvas {
+#fractal-noise-container canvas,
+.darkveil-canvas {
   display: block;
   width: 100% !important;
   height: 100% !important;
   position: absolute;
   top: 0;
   left: 0;
-}
-
-.darkveil-canvas {
-  width: 100%;
-  height: 100%;
-  display: block;
+  right: 0;
+  bottom: 0;
+  z-index: 0;
 }
 
 /* Matte overlay for better text readability */

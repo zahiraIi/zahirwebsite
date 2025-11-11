@@ -94,124 +94,190 @@ export function initDarkVeil(options = {}) {
     resolutionScale = 1
   } = options;
 
-  // Validate container exists
-  const container = document.getElementById(containerId);
-  if (!container) {
-    const error = new Error(`DarkVeil: Container #${containerId} not found`);
-    console.error(error);
-    throw error;
+  // Helper function to ensure container is ready
+  function ensureContainerReady() {
+    const container = document.getElementById(containerId);
+    if (!container) {
+      console.warn(`DarkVeil: Container #${containerId} not found, retrying...`);
+      return null;
+    }
+    
+    // Ensure container has dimensions
+    if (container.clientWidth === 0 || container.clientHeight === 0) {
+      // Use window dimensions as fallback
+      const w = window.innerWidth;
+      const h = window.innerHeight;
+      if (w > 0 && h > 0) {
+        console.log('DarkVeil: Container has zero dimensions, using window size');
+        return container;
+      }
+      return null;
+    }
+    
+    return container;
   }
 
-  // Create canvas element (equivalent to React's <canvas ref={ref} />)
-  const canvas = document.createElement('canvas');
-  canvas.className = 'darkveil-canvas';
-  canvas.style.cssText = 'width: 100%; height: 100%; display: block;';
-  
-  // Append canvas to container (canvas.parentElement will be container)
-  container.appendChild(canvas);
-
-  // Store references for cleanup
-  let renderer = null;
-  let frame = null;
-  let resizeHandler = null;
-
-  // Dynamically import OGL from CDN
-  import('https://cdn.jsdelivr.net/npm/ogl@1.0.11/dist/index.mjs')
-    .then((OGL) => {
-      const { Renderer, Program, Mesh, Triangle, Vec2 } = OGL;
-
-      // Create renderer with canvas (exactly as React version)
-      renderer = new Renderer({
-        dpr: Math.min(window.devicePixelRatio, 2),
-        canvas
-      });
-
-      const gl = renderer.gl;
-
-      if (!gl) {
-        throw new Error('WebGL context not available');
+  // Try to get container, retry if needed
+  let container = ensureContainerReady();
+  if (!container) {
+    // Wait for next frame and retry
+    requestAnimationFrame(() => {
+      container = ensureContainerReady();
+      if (container) {
+        initializeDarkVeil(container);
+      } else {
+        console.error(`DarkVeil: Container #${containerId} not available after retry`);
       }
+    });
+    return () => {}; // Return empty cleanup
+  }
 
-      // Create geometry
-      const geometry = new Triangle(gl);
+  return initializeDarkVeil(container);
 
-      // Create program with shaders
-      const program = new Program(gl, {
-        vertex,
-        fragment,
-        uniforms: {
-          uTime: { value: 0 },
-          uResolution: { value: new Vec2() },
-          uHueShift: { value: hueShift },
-          uNoise: { value: noiseIntensity },
-          uScan: { value: scanlineIntensity },
-          uScanFreq: { value: scanlineFrequency },
-          uWarp: { value: warpAmount }
+  function initializeDarkVeil(container) {
+    console.log('DarkVeil: Initializing background...', {
+      containerId,
+      containerSize: `${container.clientWidth}x${container.clientHeight}`
+    });
+
+    // Create canvas element (equivalent to React's <canvas ref={ref} />)
+    const canvas = document.createElement('canvas');
+    canvas.className = 'darkveil-canvas';
+    canvas.style.cssText = 'width: 100%; height: 100%; display: block; position: absolute; inset: 0;';
+    
+    // Append canvas to container (canvas.parentElement will be container)
+    container.appendChild(canvas);
+
+    // Store references for cleanup
+    let renderer = null;
+    let frame = null;
+    let resizeHandler = null;
+    let program = null;
+    let mesh = null;
+
+    // Dynamically import OGL from CDN
+    import('https://cdn.jsdelivr.net/npm/ogl@1.0.11/dist/index.mjs')
+      .then((OGL) => {
+        console.log('DarkVeil: OGL library loaded successfully');
+        
+        const { Renderer, Program, Mesh, Triangle, Vec2 } = OGL;
+
+        // Create renderer with canvas (exactly as React version)
+        renderer = new Renderer({
+          dpr: Math.min(window.devicePixelRatio, 2),
+          canvas
+        });
+
+        const gl = renderer.gl;
+
+        if (!gl) {
+          throw new Error('WebGL context not available');
         }
+
+        console.log('DarkVeil: WebGL context created', {
+          vendor: gl.getParameter(gl.VENDOR),
+          renderer: gl.getParameter(gl.RENDERER),
+          version: gl.getParameter(gl.VERSION)
+        });
+
+        // Create geometry
+        const geometry = new Triangle(gl);
+
+        // Create program with shaders
+        program = new Program(gl, {
+          vertex,
+          fragment,
+          uniforms: {
+            uTime: { value: 0 },
+            uResolution: { value: new Vec2() },
+            uHueShift: { value: hueShift },
+            uNoise: { value: noiseIntensity },
+            uScan: { value: scanlineIntensity },
+            uScanFreq: { value: scanlineFrequency },
+            uWarp: { value: warpAmount }
+          }
+        });
+
+        // Create mesh
+        mesh = new Mesh(gl, { geometry, program });
+
+        // Resize handler (uses container as parent, like React's canvas.parentElement)
+        const resize = () => {
+          const w = container.clientWidth || window.innerWidth;
+          const h = container.clientHeight || window.innerHeight;
+          
+          if (w > 0 && h > 0) {
+            renderer.setSize(w * resolutionScale, h * resolutionScale);
+            program.uniforms.uResolution.value.set(w, h);
+          }
+        };
+
+        // Store resize handler for cleanup
+        resizeHandler = resize;
+
+        // Add resize listener
+        window.addEventListener('resize', resizeHandler);
+
+        // Initial resize
+        resize();
+
+        // Animation loop
+        const start = performance.now();
+
+        const loop = () => {
+          if (!program || !mesh || !renderer) {
+            console.warn('DarkVeil: Components not ready, stopping loop');
+            return;
+          }
+
+          program.uniforms.uTime.value = ((performance.now() - start) / 1000) * speed;
+          program.uniforms.uHueShift.value = hueShift;
+          program.uniforms.uNoise.value = noiseIntensity;
+          program.uniforms.uScan.value = scanlineIntensity;
+          program.uniforms.uScanFreq.value = scanlineFrequency;
+          program.uniforms.uWarp.value = warpAmount;
+
+          renderer.render({ scene: mesh });
+
+          frame = requestAnimationFrame(loop);
+        };
+
+        // Start loop
+        loop();
+
+        console.log('DarkVeil: WebGL background initialized successfully');
+      })
+      .catch((error) => {
+        console.error('DarkVeil: Failed to initialize WebGL background:', error);
+        console.error('DarkVeil: Error details:', {
+          message: error.message,
+          stack: error.stack,
+          name: error.name
+        });
+        // Remove canvas on error
+        if (canvas.parentNode) {
+          canvas.parentNode.removeChild(canvas);
+        }
+        throw error;
       });
 
-      // Create mesh
-      const mesh = new Mesh(gl, { geometry, program });
-
-      // Resize handler (uses container as parent, like React's canvas.parentElement)
-      const resize = () => {
-        const w = container.clientWidth;
-        const h = container.clientHeight;
-        renderer.setSize(w * resolutionScale, h * resolutionScale);
-        program.uniforms.uResolution.value.set(w, h);
-      };
-
-      // Store resize handler for cleanup
-      resizeHandler = resize;
-
-      // Add resize listener
-      window.addEventListener('resize', resizeHandler);
-
-      // Initial resize
-      resize();
-
-      // Animation loop
-      const start = performance.now();
-
-      const loop = () => {
-        program.uniforms.uTime.value = ((performance.now() - start) / 1000) * speed;
-        program.uniforms.uHueShift.value = hueShift;
-        program.uniforms.uNoise.value = noiseIntensity;
-        program.uniforms.uScan.value = scanlineIntensity;
-        program.uniforms.uScanFreq.value = scanlineFrequency;
-        program.uniforms.uWarp.value = warpAmount;
-
-        renderer.render({ scene: mesh });
-
-        frame = requestAnimationFrame(loop);
-      };
-
-      // Start loop
-      loop();
-
-      console.log('DarkVeil: WebGL background initialized successfully');
-    })
-    .catch((error) => {
-      console.error('DarkVeil: Failed to initialize WebGL background:', error);
-      // Remove canvas on error
+    // Return cleanup function (equivalent to React's useEffect cleanup)
+    return () => {
+      console.log('DarkVeil: Cleaning up...');
+      if (frame) {
+        cancelAnimationFrame(frame);
+        frame = null;
+      }
+      if (resizeHandler) {
+        window.removeEventListener('resize', resizeHandler);
+        resizeHandler = null;
+      }
       if (canvas.parentNode) {
         canvas.parentNode.removeChild(canvas);
       }
-      throw error;
-    });
-
-  // Return cleanup function (equivalent to React's useEffect cleanup)
-  return () => {
-    if (frame) {
-      cancelAnimationFrame(frame);
-      frame = null;
-    }
-    if (resizeHandler) {
-      window.removeEventListener('resize', resizeHandler);
-      resizeHandler = null;
-    }
-    if (canvas.parentNode) {
-      canvas.parentNode.removeChild(canvas);
-    }
-  };
+      renderer = null;
+      program = null;
+      mesh = null;
+    };
+  }
 }
