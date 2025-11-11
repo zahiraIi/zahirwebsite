@@ -4,7 +4,7 @@
  */
 
 import { APP_CONFIG } from './config/app.js';
-import { initFractalNoiseShader } from './components/FractalNoiseShader.js';
+import { initDarkVeil } from './components/DarkVeil.js';
 import { initDecryptedText } from './components/DecryptedText.js';
 import { initHoverLinkPreview } from './components/HoverLinkPreview.js';
 import { initScrollAnimations } from './utils/animations.js';
@@ -14,8 +14,17 @@ import { initAllSections } from './sections/index.js';
  * Initialize visual effects
  */
 function initVisualEffects() {
-  // Fractal Noise Shader background
-  initFractalNoiseShader(APP_CONFIG.fractalNoiseShader);
+  // DarkVeil background (deep blue/shooting star)
+  initDarkVeil({
+    containerId: 'fractal-noise-container',
+    hueShift: 200, // Deep/shooting star blue
+    noiseIntensity: 0,
+    scanlineIntensity: 0,
+    speed: 0.5,
+    scanlineFrequency: 0,
+    warpAmount: 0,
+    resolutionScale: 1
+  });
   
   // Decrypted text animation
   initDecryptedText(
