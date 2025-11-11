@@ -543,7 +543,7 @@ img, video, iframe {
   z-index: 0.5;
   pointer-events: none;
   mix-blend-mode: multiply;
-  background: rgba(0, 0, 0, 0.22);
+  background: rgba(0, 0, 0, 0.15);
   backdrop-filter: blur(0.4px);
 }
 
@@ -552,6 +552,23 @@ img, video, iframe {
   #matte-overlay {
     background: rgba(0, 0, 0, 0.16);
     backdrop-filter: blur(0.4px);
+  }
+}
+
+/* Make background more visible on mobile */
+@media (max-width: 767px) {
+  #matte-overlay {
+    background: rgba(0, 0, 0, 0.08);
+    backdrop-filter: blur(0.2px);
+  }
+  
+  #fractal-noise-container {
+    opacity: 1;
+  }
+  
+  #fractal-noise-container canvas,
+  .darkveil-canvas {
+    opacity: 1 !important;
   }
 }
 
