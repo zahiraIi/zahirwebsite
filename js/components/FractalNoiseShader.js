@@ -56,7 +56,7 @@ export function initFractalNoiseShader(options = {}) {
         uniform vec2 u_resolution;
         uniform float u_time;
         
-        // Optimized: reduced from 6 to 3 octaves for balanced performance and quality
+        // Reduced octaves for better performance (from 6 to 3 for optimal desktop performance)
         const int octaves = 3;
         const float seed = 43758.5453123;
         const float seed2 = 73156.8473192;
@@ -91,18 +91,16 @@ export function initFractalNoiseShader(options = {}) {
           return v;
         }
         
-        // Optimized pattern: 5 fbm calls instead of 9 (44% less computation, maintains visual quality)
         float pattern(vec2 uv, float seed, float time, inout vec2 q, inout vec2 r) {
-          // First layer - generates q values for color variation
           q = vec2(fbm1(uv + vec2(0.0, 0.0), seed),
                     fbm1(uv + vec2(5.2, 1.3), seed));
-          
-          // Second layer - uses q to create more complex pattern (keeps color logic working)
-          r = vec2(fbm1(uv + 3.0 * q + vec2(1.7 - time / 2.0, 9.2), seed),
-                    fbm1(uv + 3.0 * q + vec2(8.3 - time / 2.0, 2.8), seed));
-          
-          // Final pattern combines everything (must use 3.0 * r and NO extra multiply for correct color range)
-          float rtn = fbm1(uv + 3.0 * r, seed);
+          r = vec2(fbm1(uv + 4.0 * q + vec2(1.7 - time / 2.0, 9.2), seed),
+                    fbm1(uv + 4.0 * q + vec2(8.3 - time / 2.0, 2.8), seed));
+          vec2 s = vec2(fbm1(uv + 4.0 * r + vec2(21.7 - time / 2.0, 90.2), seed),
+                        fbm1(uv + 4.0 * r + vec2(80.3 - time / 2.0, 20.8), seed));
+          vec2 t = vec2(fbm1(uv + 4.0 * s + vec2(121.7 - time / 2.0, 90.2), seed),
+                        fbm1(uv + 4.0 * s + vec2(180.3 - time / 2.0, 20.8), seed));
+          float rtn = fbm1(uv + 4.0 * t, seed);
           rtn = clamp(rtn, 0.0, 0.5);
           return rtn;
         }
@@ -152,26 +150,49 @@ export function initFractalNoiseShader(options = {}) {
           float intensity = length(colour);
           float normalizedIntensity = (intensity - 0.05) / 0.95; // Map from 0.05-1.0 to 0-1
           
-          // Ultra-simplified color mapping (50% less operations)
+          // Create subtle color variation based on UV position and noise patterns
+          vec2 screenUV = gl_FragCoord.xy / u_resolution.xy;
+          float angleShift = atan(uv.y, uv.x) / 3.14159; // -1 to 1 range
+          float distanceFromCenter = length(uv) * 0.3;
+          
+          // Subtle color variation for depth
+          float colorVariation = sin(angleShift * 3.14159 + time * 0.1 + distanceFromCenter) * 0.1 + 0.9;
+          
+          // Simplified color gradients using smoothstep for better performance
+          // Map based on intensity - darker areas use dark blue, brighter areas show light blue and white
           vec3 mappedColour;
           
-          // Simple two-step gradient (fewer smoothstep calls)
-          float t1 = smoothstep(0.0, 0.5, normalizedIntensity);
-          float t2 = smoothstep(0.5, 1.0, normalizedIntensity);
+          // Use smoothstep for smoother transitions with fewer branches
+          float t1 = smoothstep(0.0, 0.3, normalizedIntensity);
+          float t2 = smoothstep(0.3, 0.6, normalizedIntensity);
+          float t3 = smoothstep(0.6, 1.0, normalizedIntensity);
           
-          // Build color with fewer mix operations
+          // Build color progressively
           mappedColour = mix(darkBlue, mediumBlue, t1);
           mappedColour = mix(mappedColour, lightBlue, t2);
+          mappedColour = mix(mappedColour, whiteAccent, t3 * 0.6); // Tone down white intensity
           
-          // Simple white highlights (fewer operations)
-          float whiteHighlight = smoothstep(0.75, 0.95, normalizedIntensity);
-          mappedColour = mix(mappedColour, whiteAccent, whiteHighlight * 0.25);
+          // Add subtle color variation for depth
+          mappedColour *= colorVariation;
+          
+          // Add white accent highlights based on intensity peaks
+          float whiteHighlight = smoothstep(0.7, 0.95, normalizedIntensity);
+          whiteHighlight *= smoothstep(0.3, 0.6, abs(sin(angleShift * 6.28318 + time * 0.2)));
+          mappedColour = mix(mappedColour, whiteAccent, whiteHighlight * 0.3);
+          
+          // Add blue channel influence for more blue depth
+          float blueInfluence = colour.b * 0.15;
+          mappedColour = mix(mappedColour, lightBlue, blueInfluence);
           
           colour = mappedColour;
           colour = clamp(colour, 0.05, 1.0);
           
-          // Single color adjustment
-          colour *= 0.85;
+          // Slightly less darkening to maintain color vibrancy while keeping readability
+          colour *= 0.80;
+          
+          // Enhance color saturation slightly for more vivid blues
+          float luminance = dot(colour, vec3(0.299, 0.587, 0.114));
+          colour = mix(vec3(luminance), colour, 1.15);
           
           // Original final color output
           gl_FragColor = vec4(colour + abs(colour) * 0.4, 1.0);
@@ -179,10 +200,10 @@ export function initFractalNoiseShader(options = {}) {
       `;
 
       function init() {
-        // Ultra-performance mode: aggressive resolution reduction
-        // Desktop: 0.35 scale (~88% fewer pixels), Mobile: 0.3 scale (~91% fewer pixels)
+        // Use lower resolution on mobile for better performance
+        // Desktop scale reduced from 1.0 to 0.65 for much better performance (~58% fewer pixels)
         const isMobile = window.innerWidth <= 768;
-        const scale = isMobile ? 0.3 : 0.35;
+        const scale = isMobile ? 0.5 : 0.65;
         
         const containerWidth = container.offsetWidth || window.innerWidth;
         const containerHeight = container.offsetHeight || window.innerHeight;
@@ -258,10 +279,10 @@ export function initFractalNoiseShader(options = {}) {
       }
 
       function resize() {
-        // Ultra-performance mode: aggressive resolution reduction
-        // Desktop: 0.35 scale (~88% fewer pixels), Mobile: 0.3 scale (~91% fewer pixels)
+        // Use lower resolution on mobile for better performance
+        // Desktop scale reduced from 1.0 to 0.65 for much better performance (~58% fewer pixels)
         const isMobile = window.innerWidth <= 768;
-        const scale = isMobile ? 0.3 : 0.35;
+        const scale = isMobile ? 0.5 : 0.65;
         
         const containerWidth = container.offsetWidth;
         const containerHeight = container.offsetHeight;
@@ -327,10 +348,10 @@ export function initFractalNoiseShader(options = {}) {
             performanceMode = 'low';
             console.log('FractalNoiseShader: Switching to low performance mode due to high frame times');
             
-            // Emergency low-performance mode: further reduction
+            // Reduce resolution further (scale down to 0.5 for desktop)
             const containerWidth = container.offsetWidth;
             const containerHeight = container.offsetHeight;
-            const lowScale = isMobile ? 0.25 : 0.28;
+            const lowScale = isMobile ? 0.4 : 0.5;
             const width = containerWidth * lowScale;
             const height = containerHeight * lowScale;
             

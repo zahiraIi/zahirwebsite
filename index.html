@@ -63,7 +63,7 @@
     <link rel="preload" href="/attached_assets/zahir.webp" as="image" fetchpriority="high">
     
     <!-- Preload main JavaScript module -->
-    <link rel="modulepreload" href="/js/main.js?v=20241111-fixed">
+    <link rel="modulepreload" href="/js/main.js?v=20241111-original">
     
     <!-- Load fonts -->
     <link rel="stylesheet" href="https://use.typekit.net/huu2lim.css">
@@ -288,15 +288,15 @@
       </main>
     </div>
 
-    <!-- Clear stale localStorage on shader fix -->
+    <!-- Clear stale localStorage on shader restore -->
     <script>
-      if (localStorage.getItem('shaderVersion') !== '2024-11-11-fixed') {
+      if (localStorage.getItem('shaderVersion') !== '2024-11-11-original') {
         localStorage.clear();
-        localStorage.setItem('shaderVersion', '2024-11-11-fixed');
+        localStorage.setItem('shaderVersion', '2024-11-11-original');
       }
     </script>
     
-    <script type="module" src="/js/main.js?v=20241111-fixed"></script>
+    <script type="module" src="/js/main.js?v=20241111-original"></script>
   </body>
 </html>
 
