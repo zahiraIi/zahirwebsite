@@ -9,6 +9,7 @@ import { initDecryptedText } from './components/DecryptedText.js';
 import { initHoverLinkPreview } from './components/HoverLinkPreview.js';
 import { initScrollAnimations } from './utils/animations.js';
 import { initAllSections } from './sections/index.js';
+import { inject } from '@vercel/analytics';
 
 /**
  * Initialize visual effects
@@ -39,10 +40,26 @@ function initUIComponents() {
 }
 
 /**
+ * Initialize analytics
+ */
+function initAnalytics() {
+  // Initialize Vercel Analytics
+  try {
+    inject();
+    console.log('Vercel Analytics initialized');
+  } catch (error) {
+    console.warn('Failed to initialize Vercel Analytics:', error);
+  }
+}
+
+/**
  * Initialize application
  */
 export function initApp() {
   console.log('Initializing application...');
+  
+  // Initialize analytics first (non-blocking)
+  initAnalytics();
   
   // Initialize visual effects
   initVisualEffects();
