@@ -87,10 +87,10 @@ export function initDarkVeil(options = {}) {
     containerId = 'fractal-noise-container',
     hueShift = 200,
     noiseIntensity = 0,
-    scanlineIntensity = 0,
+    scanlineIntensity = 4,
     speed = 0.5,
-    scanlineFrequency = 0,
-    warpAmount = 0,
+    scanlineFrequency = 4,
+    warpAmount = 4,
     resolutionScale = 1,
     maxDevicePixelRatio = 1.25,
     adaptiveResolution = true,
@@ -324,8 +324,10 @@ export function initDarkVeil(options = {}) {
 
         // Resize handler (uses container as parent, like React's canvas.parentElement)
         const resize = () => {
-          const w = container.clientWidth || window.innerWidth;
-          const h = container.clientHeight || window.innerHeight;
+          // On desktop, use viewport dimensions to ensure full screen coverage
+          const isDesktop = window.innerWidth >= 768;
+          const w = isDesktop ? window.innerWidth : (container.clientWidth || window.innerWidth);
+          const h = isDesktop ? window.innerHeight : (container.clientHeight || window.innerHeight);
           
           if (w > 0 && h > 0) {
             renderer.dpr = computeEffectiveDpr();
