@@ -17,22 +17,9 @@ function initVisualEffects() {
   // Fractal Noise Shader background
   initFractalNoiseShader(APP_CONFIG.fractalNoiseShader);
   
-  // Decrypted text animation (desktop)
+  // Decrypted text animation
   initDecryptedText(
     APP_CONFIG.decryptedText.elementId,
-    APP_CONFIG.decryptedText.text,
-    {
-      speed: APP_CONFIG.decryptedText.speed,
-      maxIterations: APP_CONFIG.decryptedText.maxIterations,
-      sequential: APP_CONFIG.decryptedText.sequential,
-      revealDirection: APP_CONFIG.decryptedText.revealDirection,
-      animateOn: APP_CONFIG.decryptedText.animateOn
-    }
-  );
-  
-  // Decrypted text animation (mobile)
-  initDecryptedText(
-    'decrypted-name-mobile',
     APP_CONFIG.decryptedText.text,
     {
       speed: APP_CONFIG.decryptedText.speed,
