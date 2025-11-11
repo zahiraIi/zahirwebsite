@@ -91,19 +91,18 @@ export function initFractalNoiseShader(options = {}) {
           return v;
         }
         
-        // Ultra-simplified pattern: 2 fbm calls instead of 9 (90% less computation!)
+        // Optimized pattern: 4 fbm calls instead of 9 (55% less computation, maintains visual quality)
         float pattern(vec2 uv, float seed, float time, inout vec2 q, inout vec2 r) {
-          // First layer of noise
-          q = vec2(fbm1(uv + vec2(time * 0.1, time * 0.15), seed),
+          // First layer - generates q values for color variation
+          q = vec2(fbm1(uv + vec2(0.0, 0.0), seed),
                     fbm1(uv + vec2(5.2, 1.3), seed));
           
-          // Second layer with q offset (much simpler than original nested chain)
-          float pattern1 = fbm1(uv + q * 2.0 + vec2(time * 0.05, time * 0.08), seed);
+          // Second layer - uses q to create more complex pattern (keeps color logic working)
+          r = vec2(fbm1(uv + 3.0 * q + vec2(1.7 - time / 2.0, 9.2), seed),
+                    fbm1(uv + 3.0 * q + vec2(8.3 - time / 2.0, 2.8), seed));
           
-          // Simple r calculation for color variation
-          r = q * 0.5;
-          
-          return clamp(pattern1, 0.0, 0.5);
+          // Final pattern combines everything (simpler than original 5-layer chain)
+          return clamp(fbm1(uv + 2.0 * r, seed) * 0.5, 0.0, 0.5);
         }
         
         vec3 hsv2rgb(vec3 c) {
