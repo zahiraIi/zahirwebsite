@@ -9,7 +9,6 @@ import { initDecryptedText } from './components/DecryptedText.js';
 import { initHoverLinkPreview } from './components/HoverLinkPreview.js';
 import { initScrollAnimations } from './utils/animations.js';
 import { initAllSections } from './sections/index.js';
-import { inject } from '@vercel/analytics';
 
 /**
  * Initialize visual effects
@@ -44,12 +43,18 @@ function initUIComponents() {
  */
 function initAnalytics() {
   // Initialize Vercel Analytics
-  try {
-    inject();
-    console.log('Vercel Analytics initialized');
-  } catch (error) {
-    console.warn('Failed to initialize Vercel Analytics:', error);
-  }
+  import(/* webpackIgnore: true */ 'https://cdn.jsdelivr.net/npm/@vercel/analytics/dist/index.mjs')
+    .then((module) => {
+      if (module && typeof module.inject === 'function') {
+        module.inject();
+        console.log('Vercel Analytics initialized');
+      } else {
+        console.warn('Vercel Analytics: inject function not available');
+      }
+    })
+    .catch((error) => {
+      console.warn('Failed to initialize Vercel Analytics:', error);
+    });
 }
 
 /**
