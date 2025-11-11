@@ -324,10 +324,10 @@ export function initDarkVeil(options = {}) {
 
         // Resize handler (uses container as parent, like React's canvas.parentElement)
         const resize = () => {
-          // On desktop, use viewport dimensions to ensure full screen coverage
-          const isDesktop = window.innerWidth >= 768;
-          const w = isDesktop ? window.innerWidth : (container.clientWidth || window.innerWidth);
-          const h = isDesktop ? window.innerHeight : (container.clientHeight || window.innerHeight);
+          // Use viewport dimensions on all devices to ensure full screen coverage
+          // Since container is now fixed, we always use viewport dimensions
+          const w = window.innerWidth;
+          const h = window.innerHeight;
           
           if (w > 0 && h > 0) {
             renderer.dpr = computeEffectiveDpr();
