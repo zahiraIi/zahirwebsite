@@ -26,6 +26,11 @@ export function initFractalNoiseShader(options = {}) {
     return;
   }
   
+  // Clear any stale localStorage settings from previous versions
+  if (!disableShader) {
+    localStorage.removeItem('disableShader');
+  }
+  
   // Check if shader should be disabled (user preference or very low-end device)
   if (disableShader || localStorage.getItem('disableShader') === 'true') {
     console.log('FractalNoiseShader: Using CSS fallback (shader disabled)');
