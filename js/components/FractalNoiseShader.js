@@ -201,9 +201,9 @@ export function initFractalNoiseShader(options = {}) {
 
       function init() {
         // Use lower resolution on mobile for better performance
-        // Desktop scale reduced from 1.0 to 0.65 for much better performance (~58% fewer pixels)
+        // Desktop scale reduced from 1.0 to 0.5 for maximum performance (~75% fewer pixels)
         const isMobile = window.innerWidth <= 768;
-        const scale = isMobile ? 0.5 : 0.65;
+        const scale = isMobile ? 0.4 : 0.5;
         
         const containerWidth = container.offsetWidth || window.innerWidth;
         const containerHeight = container.offsetHeight || window.innerHeight;
@@ -280,9 +280,9 @@ export function initFractalNoiseShader(options = {}) {
 
       function resize() {
         // Use lower resolution on mobile for better performance
-        // Desktop scale reduced from 1.0 to 0.65 for much better performance (~58% fewer pixels)
+        // Desktop scale reduced from 1.0 to 0.5 for maximum performance (~75% fewer pixels)
         const isMobile = window.innerWidth <= 768;
-        const scale = isMobile ? 0.5 : 0.65;
+        const scale = isMobile ? 0.4 : 0.5;
         
         const containerWidth = container.offsetWidth;
         const containerHeight = container.offsetHeight;
@@ -348,10 +348,10 @@ export function initFractalNoiseShader(options = {}) {
             performanceMode = 'low';
             console.log('FractalNoiseShader: Switching to low performance mode due to high frame times');
             
-            // Reduce resolution further (scale down to 0.5 for desktop)
+            // Reduce resolution further (scale down to 0.35 for desktop)
             const containerWidth = container.offsetWidth;
             const containerHeight = container.offsetHeight;
-            const lowScale = isMobile ? 0.4 : 0.5;
+            const lowScale = isMobile ? 0.3 : 0.35;
             const width = containerWidth * lowScale;
             const height = containerHeight * lowScale;
             

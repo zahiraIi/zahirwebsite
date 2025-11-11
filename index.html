@@ -63,7 +63,7 @@
     <link rel="preload" href="/attached_assets/zahir.webp" as="image" fetchpriority="high">
     
     <!-- Preload main JavaScript module -->
-    <link rel="modulepreload" href="/js/main.js?v=20241111-original">
+    <link rel="modulepreload" href="/js/main.js">
     
     <!-- Load fonts -->
     <link rel="stylesheet" href="https://use.typekit.net/huu2lim.css">
@@ -180,19 +180,19 @@
         class="relative z-[1] min-h-screen px-8 md:px-12 lg:px-16 py-16 md:py-20 flex justify-center overflow-x-hidden"
         id="main-content"
       >
-        <div class="max-w-6xl w-full">
-          <!-- Header Section with Name and Photo -->
-          <header class="mb-16 md:mb-20 flex flex-col md:flex-row items-center md:items-center justify-between gap-8">
-            <!-- Name and Subtitle -->
-            <div class="flex-1 text-center md:text-left fade-in-up" data-delay="200">
-              <h1 class="text-6xl md:text-7xl lg:text-8xl font-bold mb-4 leading-tight tracking-tight">
-                <span id="decrypted-name" class="text-white" itemscope itemtype="https://schema.org/Person">
-                  <span itemprop="name">Zahir Ali</span>
-                </span>
-              </h1>
-              <p class="text-xl md:text-4xl font-light text-white mb-2 fade-in-up" data-delay="600" itemprop="jobTitle">
-                machine learning & software engineer
-              </p>
+          <div class="max-w-6xl w-full">
+            <!-- Header Section with Name and Photo -->
+            <header class="mb-16 md:mb-20 flex flex-col md:flex-row items-center md:items-center justify-between gap-8">
+              <!-- Name and Subtitle -->
+              <div class="flex-1 text-center md:text-left fade-in-up" data-delay="200">
+                <h1 class="text-6xl md:text-7xl lg:text-8xl font-bold mb-4 leading-tight tracking-tight">
+                  <span id="decrypted-name" class="text-white" itemscope itemtype="https://schema.org/Person">
+                    <span itemprop="name">Zahir Ali</span>
+                  </span>
+                </h1>
+                <p class="text-xl md:text-4xl font-light text-white mb-2 fade-in-up" data-delay="600" itemprop="jobTitle">
+                  machine learning & software engineer
+                </p>
               <p class="text-xl md:text-4xl font-light text-white mb-2 fade-in-up" data-delay="800">
                 embedded swe @
                 <a 
@@ -259,8 +259,8 @@
                   </svg>
                 </a>
               </div>
-            </div>
-          </header>
+            </header>
+          </div>
 
           <!-- Sections will be inserted here by JavaScript -->
           <div id="sections-container">
@@ -288,15 +288,7 @@
       </main>
     </div>
 
-    <!-- Clear stale localStorage on shader restore -->
-    <script>
-      if (localStorage.getItem('shaderVersion') !== '2024-11-11-original') {
-        localStorage.clear();
-        localStorage.setItem('shaderVersion', '2024-11-11-original');
-      }
-    </script>
-    
-    <script type="module" src="/js/main.js?v=20241111-original"></script>
+    <script type="module" src="/js/main.js"></script>
   </body>
 </html>
 

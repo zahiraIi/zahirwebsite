@@ -1,11 +1,10 @@
-# robots.txt for https://zahirali.com
-# Optimized for search engine crawlers and AI LLMs
+# robots.txt for zahirali.com
+# Optimized for Google and AI Search Engines (ChatGPT, Perplexity, Gemini, Claude)
 
-# Allow all search engines and AI crawlers to access the site
 User-agent: *
 Allow: /
 
-# Allow specific AI crawlers (Semrush One recommendations)
+# Allow all AI crawlers
 User-agent: GPTBot
 Allow: /
 
@@ -15,39 +14,21 @@ Allow: /
 User-agent: Google-Extended
 Allow: /
 
-User-agent: PerplexityBot
-Allow: /
-
-User-agent: ClaudeBot
-Allow: /
-
 User-agent: anthropic-ai
+Allow: /
+
+User-agent: Claude-Web
+Allow: /
+
+User-agent: PerplexityBot
 Allow: /
 
 User-agent: Applebot-Extended
 Allow: /
 
-# Disallow crawling of unnecessary directories
-Disallow: /node_modules/
-Disallow: /.git/
-Disallow: /*.json$
-
-# Allow crawling of assets for image search
-Allow: /attached_assets/*.webp
-Allow: /attached_assets/*.png
-Allow: /attached_assets/*.jpg
-Allow: /attached_assets/*.jpeg
-
-# Allow CSS and JS for proper rendering
-Allow: /css/
-Allow: /js/
-
-# Sitemap location (important for SEO)
+# Sitemap location
 Sitemap: https://zahirali.com/sitemap.xml
 
-# Crawl-delay to be respectful to server resources
-# (Not set to allow maximum crawl frequency for better indexing)
-
-# Host directive (optional, for some search engines)
-Host: https://zahirali.com
+# Crawl-delay: 0 (allow fast crawling for fresh content)
+Crawl-delay: 0
 
