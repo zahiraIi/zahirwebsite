@@ -56,7 +56,8 @@ export function initFractalNoiseShader(options = {}) {
         uniform vec2 u_resolution;
         uniform float u_time;
         
-        const int octaves = 6;
+        // Reduced octaves for better performance (from 6 to 3 for optimal desktop performance)
+        const int octaves = 3;
         const float seed = 43758.5453123;
         const float seed2 = 73156.8473192;
         
@@ -157,27 +158,19 @@ export function initFractalNoiseShader(options = {}) {
           // Subtle color variation for depth
           float colorVariation = sin(angleShift * 3.14159 + time * 0.1 + distanceFromCenter) * 0.1 + 0.9;
           
-          // Create color gradients based on intensity
+          // Simplified color gradients using smoothstep for better performance
+          // Map based on intensity - darker areas use dark blue, brighter areas show light blue and white
           vec3 mappedColour;
           
-          // Map based on intensity - darker areas use dark blue, brighter areas show light blue and white
-          if (normalizedIntensity < 0.3) {
-            // Dark range: blend dark blue to medium blue
-            float t = normalizedIntensity / 0.3;
-            mappedColour = mix(darkBlue, mediumBlue, t);
-          } else if (normalizedIntensity < 0.6) {
-            // Mid range: blend medium blue to light blue
-            float t = (normalizedIntensity - 0.3) / 0.3;
-            mappedColour = mix(mediumBlue, lightBlue, t);
-          } else if (normalizedIntensity < 0.85) {
-            // Upper-mid range: blend light blue with white accents
-            float t = (normalizedIntensity - 0.6) / 0.25;
-            mappedColour = mix(lightBlue, mix(lightBlue, whiteAccent, 0.4), t);
-          } else {
-            // Bright range: white accents for highlights
-            float t = (normalizedIntensity - 0.85) / 0.15;
-            mappedColour = mix(mix(lightBlue, whiteAccent, 0.4), whiteAccent, t);
-          }
+          // Use smoothstep for smoother transitions with fewer branches
+          float t1 = smoothstep(0.0, 0.3, normalizedIntensity);
+          float t2 = smoothstep(0.3, 0.6, normalizedIntensity);
+          float t3 = smoothstep(0.6, 1.0, normalizedIntensity);
+          
+          // Build color progressively
+          mappedColour = mix(darkBlue, mediumBlue, t1);
+          mappedColour = mix(mappedColour, lightBlue, t2);
+          mappedColour = mix(mappedColour, whiteAccent, t3 * 0.6); // Tone down white intensity
           
           // Add subtle color variation for depth
           mappedColour *= colorVariation;
@@ -208,8 +201,9 @@ export function initFractalNoiseShader(options = {}) {
 
       function init() {
         // Use lower resolution on mobile for better performance
+        // Desktop scale reduced from 1.0 to 0.65 for much better performance (~58% fewer pixels)
         const isMobile = window.innerWidth <= 768;
-        const scale = isMobile ? 0.5 : 1;
+        const scale = isMobile ? 0.5 : 0.65;
         
         const containerWidth = container.offsetWidth || window.innerWidth;
         const containerHeight = container.offsetHeight || window.innerHeight;
@@ -229,7 +223,10 @@ export function initFractalNoiseShader(options = {}) {
         renderer = new WebGLRenderer({
           antialias: !isMobile, // Disable antialias on mobile for performance
           alpha: true,
-          powerPreference: 'high-performance'
+          powerPreference: 'high-performance',
+          preserveDrawingBuffer: false, // Don't preserve buffer for better performance
+          stencil: false, // Disable stencil buffer for better performance
+          depth: false // Disable depth buffer for 2D shader
         });
         
         renderer.setSize(width, height);
@@ -248,9 +245,17 @@ export function initFractalNoiseShader(options = {}) {
           left: 0;
           pointer-events: none;
           image-rendering: ${isMobile ? 'pixelated' : 'auto'};
+          will-change: contents;
+          transform: translateZ(0);
         `;
         
         container.appendChild(canvas);
+        
+        // Prerender initial frame for instant display
+        if (material && material.uniforms && material.uniforms.u_time) {
+          material.uniforms.u_time.value = 0;
+          renderer.render(scene, camera);
+        }
 
         material = new ShaderMaterial({
           uniforms: {
@@ -275,8 +280,9 @@ export function initFractalNoiseShader(options = {}) {
 
       function resize() {
         // Use lower resolution on mobile for better performance
+        // Desktop scale reduced from 1.0 to 0.65 for much better performance (~58% fewer pixels)
         const isMobile = window.innerWidth <= 768;
-        const scale = isMobile ? 0.5 : 1;
+        const scale = isMobile ? 0.5 : 0.65;
         
         const containerWidth = container.offsetWidth;
         const containerHeight = container.offsetHeight;
@@ -295,10 +301,22 @@ export function initFractalNoiseShader(options = {}) {
         }
       }
 
+      // Track if element is visible in viewport
+      let isVisible = true;
+      let intersectionObserver = null;
+      
+      // Performance monitoring for adaptive quality
+      let frameTimes = [];
+      let performanceMode = 'normal'; // 'normal' or 'low'
+      let performanceCheckCounter = 0;
+      const PERFORMANCE_CHECK_INTERVAL = 60; // Check every 60 frames (~2 seconds at 30fps)
+      const HIGH_FRAME_TIME_THRESHOLD = 40; // ms - if avg frame time > 40ms (< 25fps), reduce quality
+      
+      // Enhanced FPS capping with stricter limits
       function animate() {
-        // Cap FPS on mobile to ~30 to reduce load
+        // Cap FPS: 30 FPS on both mobile and desktop for optimal performance
         const isMobile = /Mobi|Android/i.test(navigator.userAgent);
-        const targetDelta = isMobile ? (1000 / 30) : (1000 / 60);
+        const targetDelta = isMobile ? (1000 / 30) : (1000 / 30);
         let last = animate._last || 0;
         const now = performance.now();
         const dt = now - last;
@@ -306,8 +324,45 @@ export function initFractalNoiseShader(options = {}) {
           animationId = requestAnimationFrame(animate);
           return;
         }
+        
+        // Track frame time for performance monitoring
+        frameTimes.push(dt);
+        if (frameTimes.length > 60) frameTimes.shift(); // Keep last 60 frames
+        
         animate._last = now;
         animationId = requestAnimationFrame(animate);
+        
+        // Skip rendering if not visible or tab is hidden
+        if (!isVisible || document.hidden) {
+          return;
+        }
+        
+        // Adaptive quality: check performance periodically
+        performanceCheckCounter++;
+        if (performanceCheckCounter >= PERFORMANCE_CHECK_INTERVAL && frameTimes.length >= 30) {
+          performanceCheckCounter = 0;
+          const avgFrameTime = frameTimes.reduce((a, b) => a + b, 0) / frameTimes.length;
+          
+          if (avgFrameTime > HIGH_FRAME_TIME_THRESHOLD && performanceMode !== 'low') {
+            // Performance is poor, reduce quality further
+            performanceMode = 'low';
+            console.log('FractalNoiseShader: Switching to low performance mode due to high frame times');
+            
+            // Reduce resolution further (scale down to 0.5 for desktop)
+            const containerWidth = container.offsetWidth;
+            const containerHeight = container.offsetHeight;
+            const lowScale = isMobile ? 0.4 : 0.5;
+            const width = containerWidth * lowScale;
+            const height = containerHeight * lowScale;
+            
+            if (renderer) {
+              renderer.setSize(width, height);
+            }
+            if (material && material.uniforms) {
+              material.uniforms.u_resolution.value.set(width, height);
+            }
+          }
+        }
         
         const time = (now - startTime) * 0.001;
 
@@ -325,9 +380,37 @@ export function initFractalNoiseShader(options = {}) {
         if (document.hidden) {
           if (animationId) cancelAnimationFrame(animationId);
           animationId = null;
-        } else if (!animationId) {
+        } else if (!animationId && isVisible) {
           animate._last = 0;
           animate();
+        }
+      }
+      
+      // Intersection Observer to pause when offscreen
+      function setupIntersectionObserver() {
+        if ('IntersectionObserver' in window) {
+          intersectionObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+              isVisible = entry.isIntersecting;
+              if (!isVisible || document.hidden) {
+                // Pause animation when offscreen
+                if (animationId) {
+                  cancelAnimationFrame(animationId);
+                  animationId = null;
+                }
+              } else if (!animationId) {
+                // Resume animation when visible
+                animate._last = 0;
+                animate();
+              }
+            });
+          }, {
+            root: null,
+            rootMargin: '50px', // Start rendering slightly before entering viewport
+            threshold: 0.01 // Trigger when at least 1% visible
+          });
+          
+          intersectionObserver.observe(container);
         }
       }
 
@@ -335,6 +418,7 @@ export function initFractalNoiseShader(options = {}) {
         init();
         window.addEventListener('resize', resize);
         document.addEventListener('visibilitychange', handleVisibility);
+        setupIntersectionObserver();
         animate();
       } catch (error) {
         console.error('FractalNoiseShader error:', error);
@@ -345,6 +429,11 @@ export function initFractalNoiseShader(options = {}) {
         if (animationId) cancelAnimationFrame(animationId);
         window.removeEventListener('resize', resize);
         document.removeEventListener('visibilitychange', handleVisibility);
+        
+        if (intersectionObserver) {
+          intersectionObserver.disconnect();
+          intersectionObserver = null;
+        }
         
         if (renderer) {
           const canvas = renderer.domElement;
