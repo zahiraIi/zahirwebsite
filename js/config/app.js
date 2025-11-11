@@ -4,13 +4,6 @@
  */
 
 export const APP_CONFIG = {
-  // Visual effects
-  fractalNoiseShader: {
-    containerId: 'fractal-noise-container',
-    // Tame Impala Currents album color palette
-    colors: ['#322736', '#9275a4', '#cba6c3', '#e53247'] // Dark Purple, Medium Purple, Light Purple, Red
-  },
-
   // Decrypted text animation
   decryptedText: {
     elementId: 'decrypted-name',
