@@ -4,8 +4,6 @@
  * Converted from React component
  */
 
-import { Renderer, Program, Mesh, Triangle, Vec2 } from 'ogl';
-
 const vertex = `
 attribute vec2 position;
 void main(){gl_Position=vec4(position,0.0,1.0);}
@@ -101,70 +99,94 @@ export function initDarkVeil(options = {}) {
     return;
   }
 
-  // Create canvas element
-  const canvas = document.createElement('canvas');
-  canvas.className = 'darkveil-canvas';
-  canvas.style.cssText = 'width: 100%; height: 100%; display: block; position: absolute; inset: 0;';
-  container.appendChild(canvas);
+  // Dynamically import OGL from CDN
+  import('https://cdn.jsdelivr.net/npm/ogl@1.0.11/dist/index.mjs')
+    .then((OGL) => {
+      const { Renderer, Program, Mesh, Triangle, Vec2 } = OGL;
 
-  const renderer = new Renderer({
-    dpr: Math.min(window.devicePixelRatio, 2),
-    canvas
-  });
+      // Create canvas element
+      const canvas = document.createElement('canvas');
+      canvas.className = 'darkveil-canvas';
+      canvas.style.cssText = 'width: 100%; height: 100%; display: block; position: absolute; inset: 0;';
+      container.appendChild(canvas);
 
-  const gl = renderer.gl;
-  const geometry = new Triangle(gl);
-  
-  const program = new Program(gl, {
-    vertex,
-    fragment,
-    uniforms: {
-      uTime: { value: 0 },
-      uResolution: { value: new Vec2() },
-      uHueShift: { value: hueShift },
-      uNoise: { value: noiseIntensity },
-      uScan: { value: scanlineIntensity },
-      uScanFreq: { value: scanlineFrequency },
-      uWarp: { value: warpAmount }
-    }
-  });
+      try {
+        const renderer = new Renderer({
+          dpr: Math.min(window.devicePixelRatio, 2),
+          canvas
+        });
 
-  const mesh = new Mesh(gl, { geometry, program });
+        const gl = renderer.gl;
+        
+        if (!gl) {
+          throw new Error('WebGL context not available');
+        }
+        
+        const geometry = new Triangle(gl);
+        
+        const program = new Program(gl, {
+          vertex,
+          fragment,
+          uniforms: {
+            uTime: { value: 0 },
+            uResolution: { value: new Vec2() },
+            uHueShift: { value: hueShift },
+            uNoise: { value: noiseIntensity },
+            uScan: { value: scanlineIntensity },
+            uScanFreq: { value: scanlineFrequency },
+            uWarp: { value: warpAmount }
+          }
+        });
 
-  const resize = () => {
-    const w = container.clientWidth;
-    const h = container.clientHeight;
-    renderer.setSize(w * resolutionScale, h * resolutionScale);
-    program.uniforms.uResolution.value.set(w, h);
-  };
+        const mesh = new Mesh(gl, { geometry, program });
 
-  window.addEventListener('resize', resize);
-  resize();
+        const resize = () => {
+          const w = container.clientWidth;
+          const h = container.clientHeight;
+          renderer.setSize(w * resolutionScale, h * resolutionScale);
+          program.uniforms.uResolution.value.set(w, h);
+        };
 
-  const start = performance.now();
-  let frame = null;
+        window.addEventListener('resize', resize);
+        resize();
 
-  const loop = () => {
-    program.uniforms.uTime.value = ((performance.now() - start) / 1000) * speed;
-    program.uniforms.uHueShift.value = hueShift;
-    program.uniforms.uNoise.value = noiseIntensity;
-    program.uniforms.uScan.value = scanlineIntensity;
-    program.uniforms.uScanFreq.value = scanlineFrequency;
-    program.uniforms.uWarp.value = warpAmount;
+        const start = performance.now();
+        let frame = null;
 
-    renderer.render({ scene: mesh });
-    frame = requestAnimationFrame(loop);
-  };
+        const loop = () => {
+          program.uniforms.uTime.value = ((performance.now() - start) / 1000) * speed;
+          program.uniforms.uHueShift.value = hueShift;
+          program.uniforms.uNoise.value = noiseIntensity;
+          program.uniforms.uScan.value = scanlineIntensity;
+          program.uniforms.uScanFreq.value = scanlineFrequency;
+          program.uniforms.uWarp.value = warpAmount;
 
-  loop();
+          renderer.render({ scene: mesh });
+          frame = requestAnimationFrame(loop);
+        };
 
-  // Cleanup function
-  return () => {
-    if (frame) cancelAnimationFrame(frame);
-    window.removeEventListener('resize', resize);
-    if (canvas.parentNode) {
-      canvas.parentNode.removeChild(canvas);
-    }
-  };
+        loop();
+
+        // Store cleanup function
+        window._darkVeilCleanup = () => {
+          if (frame) cancelAnimationFrame(frame);
+          window.removeEventListener('resize', resize);
+          if (canvas.parentNode) {
+            canvas.parentNode.removeChild(canvas);
+          }
+        };
+        
+        console.log('DarkVeil: Background initialized successfully');
+      } catch (error) {
+        console.error('DarkVeil: WebGL initialization failed:', error);
+        // Fallback: add a simple gradient background
+        container.style.background = 'linear-gradient(135deg, #0a0e27 0%, #1a1f3d 50%, #2a3f5f 100%)';
+      }
+    })
+    .catch((error) => {
+      console.error('DarkVeil: Failed to load OGL library:', error);
+      // Fallback: add a simple gradient background
+      container.style.background = 'linear-gradient(135deg, #0a0e27 0%, #1a1f3d 50%, #2a3f5f 100%)';
+    });
 }
 
