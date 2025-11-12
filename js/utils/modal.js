@@ -27,7 +27,9 @@ export class Modal {
     this.overlay.style.cssText = `
       position: fixed;
       inset: 0;
-      background: rgba(0, 0, 0, 0.95);
+      background: rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
       z-index: 9999;
       display: flex;
       align-items: center;
@@ -67,9 +69,10 @@ export class Modal {
       width: 3.5rem;
       height: 3.5rem;
       border-radius: 9999px;
-      background: rgba(255, 255, 255, 0.25);
-      backdrop-filter: blur(8px);
-      border: 2px solid rgba(255, 255, 255, 0.4);
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
       color: white;
       font-size: 2rem;
       cursor: pointer;
@@ -81,11 +84,13 @@ export class Modal {
     `;
     
     this.closeButton.addEventListener('mouseenter', () => {
-      this.closeButton.style.background = 'rgba(255, 255, 255, 0.35)';
+      this.closeButton.style.background = 'rgba(255, 255, 255, 0.2)';
+      this.closeButton.style.borderColor = 'rgba(255, 255, 255, 0.3)';
     });
     
     this.closeButton.addEventListener('mouseleave', () => {
-      this.closeButton.style.background = 'rgba(255, 255, 255, 0.25)';
+      this.closeButton.style.background = 'rgba(255, 255, 255, 0.1)';
+      this.closeButton.style.borderColor = 'rgba(255, 255, 255, 0.2)';
     });
     
     // Assemble modal

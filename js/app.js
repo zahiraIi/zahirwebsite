@@ -7,6 +7,7 @@ import { APP_CONFIG } from './config/app.js';
 import { initDarkVeil } from './components/DarkVeil.js';
 import { initDecryptedText } from './components/DecryptedText.js';
 import { initHoverLinkPreview } from './components/HoverLinkPreview.js';
+import { initContactForm } from './components/ContactForm.js';
 import { initScrollAnimations } from './utils/animations.js';
 import { initAllSections } from './sections/index.js';
 
@@ -51,6 +52,20 @@ function initVisualEffects() {
  */
 function initUIComponents() {
   initHoverLinkPreview();
+  
+  // Initialize contact form
+  const openContactForm = initContactForm({
+    email: 'z5ali@ucsd.edu'
+  });
+  
+  // Attach contact form trigger to email button
+  const emailButton = document.querySelector('a[href="mailto:z5ali@ucsd.edu"]');
+  if (emailButton) {
+    emailButton.addEventListener('click', (e) => {
+      e.preventDefault();
+      openContactForm();
+    });
+  }
 }
 
 /**
